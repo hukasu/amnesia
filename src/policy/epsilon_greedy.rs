@@ -32,8 +32,7 @@ impl<A: DiscreteAction, S: DiscreteState> EpsilonGreedyPolicy<A, S> {
             })
         } else {
             Err(PolicyError::new(format!(
-                "EpsilonGreedyPolicy requires an `epsilon` between `0.0` and `1.0`. Received {}",
-                epsilon
+                "EpsilonGreedyPolicy requires an `epsilon` between `0.0` and `1.0`. Received {epsilon}"
             )))
         }
     }
@@ -50,7 +49,7 @@ impl<A: DiscreteAction, S: DiscreteState> Policy for EpsilonGreedyPolicy<A, S> {
             S::STATES
                 .iter()
                 .zip(self.state_action_correspondece.iter())
-                .find_map(|(s, action)| Some(action).cloned().filter(|_| s.eq(state.borrow())))
+                .find_map(|(s, action)| Some(action).copied().filter(|_| s.eq(state.borrow())))
                 .expect("All states must have a corresponding action.")
         }
     }
@@ -68,6 +67,6 @@ impl<A: DiscreteAction, S: DiscreteState> Policy for EpsilonGreedyPolicy<A, S> {
                 } else {
                     panic!("Could not determinate best action for State {state:?}")
                 }
-            })
+            });
     }
 }
