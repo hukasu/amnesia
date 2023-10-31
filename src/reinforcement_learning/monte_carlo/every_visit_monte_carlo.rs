@@ -1,9 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::{
-    action::DiscreteAction,
-    agent::Agent,
-    environment::{Environment, EpisodicEnvironment},
+    action::DiscreteAction, agent::Agent, environment::EpisodicEnvironment,
     observation::DiscreteObservation,
 };
 
@@ -43,13 +41,13 @@ impl<
 {
     type Environment = E;
 
-    fn policy_search(self, agent: &mut <Self::Environment as Environment>::Agent) {
+    fn policy_search(self, environment: &mut Self::Environment, agent: &mut E::Agent) {
         let mut visit_count = vec![0usize; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
         let mut returns = vec![0.0f64; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
         let mut observation_values = vec![0.0f64; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
 
         for _episode in 0..self.episodes {
-            let trajectory = Self::generate_trajectory(agent);
+            let trajectory = Self::generate_trajectory(environment, agent);
 
             let episode_returns = Self::calculate_return(trajectory.iter(), self.return_discount);
 

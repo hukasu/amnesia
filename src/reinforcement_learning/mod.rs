@@ -7,7 +7,11 @@ pub mod monte_carlo;
 pub trait PolicyEstimator {
     type Environment: crate::environment::Environment;
 
-    fn policy_search(self, agent: &mut <Self::Environment as Environment>::Agent);
+    fn policy_search(
+        self,
+        environment: &mut Self::Environment,
+        agent: &mut <Self::Environment as Environment>::Agent,
+    );
 
     /// Calculates the returns of a list of rewards using the equation
     /// `G{t,i} = r{t,i} + γ r{t+1,i} + γ^2 r{t+2,i} + ... +  γ^{Ti-1} r{Ti,i}` where

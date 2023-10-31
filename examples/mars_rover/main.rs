@@ -124,13 +124,14 @@ impl Environment for Mars {
 }
 
 impl EpisodicEnvironment for Mars {
-    fn start_episode() -> Self {
-        Self {
-            rover_position: MarsSpace::S4,
-        }
+    fn reset_environment(&mut self) {
+        self.rover_position = MarsSpace::S4;
     }
 
-    fn final_observation(&self) -> <Self::Agent as Agent>::Observation {
+    fn final_observation(
+        &self,
+        _agent: impl Borrow<Self::Agent>,
+    ) -> <Self::Agent as Agent>::Observation {
         self.rover_position
     }
 }
@@ -148,19 +149,25 @@ fn main() {
     const RETURN_DISCOUNT: f64 = 1.;
     const ALPHA: f64 = 0.1;
 
+    let mut mars = Mars {
+        rover_position: MarsSpace::S4,
+    };
+
     println!("First Visit Monte Carlo");
     let random = RandFacade;
     let mut agent = Rover(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
-    FirstVisitMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES).policy_search(&mut agent);
+    FirstVisitMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES)
+        .policy_search(&mut mars, &mut agent);
 
     println!("Every Visit Monte Carlo");
     let random = RandFacade;
     let mut agent = Rover(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
-    EveryVisitMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES).policy_search(&mut agent);
+    EveryVisitMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES)
+        .policy_search(&mut mars, &mut agent);
 
     println!("Constant Alpha Visit Monte Carlo");
     let random = RandFacade;
     let mut agent = Rover(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
     ConstantAlphaMonteCarlo::<Mars>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
-        .policy_search(&mut agent);
+        .policy_search(&mut mars, &mut agent);
 }

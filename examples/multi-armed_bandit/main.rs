@@ -68,11 +68,14 @@ impl Environment for Cassino {
 }
 
 impl EpisodicEnvironment for Cassino {
-    fn start_episode() -> Self {
-        Cassino(false)
+    fn reset_environment(&mut self) {
+        self.0 = false;
     }
 
-    fn final_observation(&self) -> <Self::Agent as Agent>::Observation {
+    fn final_observation(
+        &self,
+        _agent: impl std::borrow::Borrow<Self::Agent>,
+    ) -> <Self::Agent as Agent>::Observation {
         MultiArmedBanditObservation::Game
     }
 }
@@ -107,19 +110,23 @@ fn main() {
     const RETURN_DISCOUNT: f64 = 1.;
     const ALPHA: f64 = 0.05;
 
+    let mut cassino = Cassino(false);
+
     println!("First Visit Monte Carlo");
     let random = RandFacade;
     let mut agent = Player(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
-    FirstVisitMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES).policy_search(&mut agent);
+    FirstVisitMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES)
+        .policy_search(&mut cassino, &mut agent);
 
     println!("Every Visit Monte Carlo");
     let random = RandFacade;
     let mut agent = Player(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
-    EveryVisitMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES).policy_search(&mut agent);
+    EveryVisitMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES)
+        .policy_search(&mut cassino, &mut agent);
 
     println!("Constant Alpha Visit Monte Carlo");
     let random = RandFacade;
     let mut agent = Player(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
     ConstantAlphaMonteCarlo::<Cassino>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
-        .policy_search(&mut agent);
+        .policy_search(&mut cassino, &mut agent);
 }
