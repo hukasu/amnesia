@@ -2,13 +2,13 @@ use amnesia::{
     action::{Action, DiscreteAction},
     agent::Agent,
     environment::{Environment, EpisodicEnvironment},
+    observation::{DiscreteObservation, Observation},
     policy::{epsilon_greedy::EpsilonGreedyPolicy, Policy},
     random_number_generator::RandomNumberGeneratorFacade,
     reinforcement_learning::{
         monte_carlo::ConstantAlphaMonteCarlo, monte_carlo::EveryVisitMonteCarlo,
         monte_carlo::FirstVisitMonteCarlo, PolicyEstimator,
     },
-    state::{DiscreteState, State},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -25,14 +25,14 @@ impl DiscreteAction for MultiArmedBanditAction {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum MultiArmedBanditState {
+enum MultiArmedBanditObservation {
     Game,
 }
 
-impl State for MultiArmedBanditState {}
+impl Observation for MultiArmedBanditObservation {}
 
-impl DiscreteState for MultiArmedBanditState {
-    const STATES: &'static [Self] = &[Self::Game];
+impl DiscreteObservation for MultiArmedBanditObservation {
+    const OBSERVATIONS: &'static [Self] = &[Self::Game];
 }
 
 struct Cassino(bool);
@@ -40,19 +40,19 @@ struct Cassino(bool);
 impl Environment for Cassino {
     type Agent = Player;
 
-    fn get_agent_state(
+    fn get_observation(
         &mut self,
         _agent: impl std::borrow::Borrow<Self::Agent>,
-    ) -> Option<<Self::Agent as Agent>::State> {
+    ) -> Option<<Self::Agent as Agent>::Observation> {
         if !self.0 {
             self.0 = true;
-            Some(MultiArmedBanditState::Game)
+            Some(MultiArmedBanditObservation::Game)
         } else {
             None
         }
     }
 
-    fn receive_agent_action(
+    fn receive_action(
         &mut self,
         _agent: impl std::borrow::Borrow<Self::Agent>,
         action: impl std::borrow::Borrow<<Self::Agent as Agent>::Action>,
@@ -72,21 +72,24 @@ impl EpisodicEnvironment for Cassino {
         Cassino(false)
     }
 
-    fn final_state(&self) -> <Self::Agent as Agent>::State {
-        MultiArmedBanditState::Game
+    fn final_observation(&self) -> <Self::Agent as Agent>::Observation {
+        MultiArmedBanditObservation::Game
     }
 }
 
-struct Player(EpsilonGreedyPolicy<MultiArmedBanditAction, MultiArmedBanditState>);
+struct Player(EpsilonGreedyPolicy<MultiArmedBanditAction, MultiArmedBanditObservation>);
 impl Agent for Player {
     type Action = MultiArmedBanditAction;
-    type State = MultiArmedBanditState;
+    type Observation = MultiArmedBanditObservation;
 
-    fn act(&self, state: impl std::borrow::Borrow<Self::State>) -> Self::Action {
-        self.0.act(state)
+    fn act(&self, observation: impl std::borrow::Borrow<Self::Observation>) -> Self::Action {
+        self.0.act(observation)
     }
 
-    fn policy_improvemnt(&mut self, value_function: impl Fn(&Self::State, &Self::Action) -> f64) {
+    fn policy_improvemnt(
+        &mut self,
+        value_function: impl Fn(&Self::Observation, &Self::Action) -> f64,
+    ) {
         self.0.policy_improvemnt(value_function);
     }
 }

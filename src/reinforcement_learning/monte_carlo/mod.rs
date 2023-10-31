@@ -9,16 +9,16 @@ pub use every_visit_monte_carlo::EveryVisitMonteCarlo;
 pub use first_visit_monte_carlo::FirstVisitMonteCarlo;
 
 use crate::{
-    action::DiscreteAction, agent::Agent, environment::EpisodicEnvironment, state::DiscreteState,
-    trajectory::Trajectory,
+    action::DiscreteAction, agent::Agent, environment::EpisodicEnvironment,
+    observation::DiscreteObservation, trajectory::Trajectory,
 };
 
 use super::PolicyEstimator;
 
 trait MonteCarlo<
     AC: DiscreteAction,
-    S: DiscreteState,
-    AG: Agent<Action = AC, State = S>,
+    S: DiscreteObservation,
+    AG: Agent<Action = AC, Observation = S>,
     E: EpisodicEnvironment<Agent = AG>,
 >: PolicyEstimator<Environment = E>
 {
@@ -26,26 +26,26 @@ trait MonteCarlo<
         let mut environment = E::start_episode();
         let mut trajectory = vec![];
 
-        while let Some(state) = environment.get_agent_state(agent.borrow_mut()) {
-            let action = (agent.borrow_mut()).act(&state);
-            let reward = environment.receive_agent_action(agent.borrow_mut(), &action);
+        while let Some(observation) = environment.get_observation(agent.borrow_mut()) {
+            let action = (agent.borrow_mut()).act(&observation);
+            let reward = environment.receive_action(agent.borrow_mut(), &action);
 
             trajectory.push(Trajectory::Step {
-                state,
+                observation,
                 action,
                 reward,
             });
         }
         trajectory.push(Trajectory::Final {
-            state: environment.final_state(),
+            observation: environment.final_observation(),
         });
 
         trajectory
     }
 
-    fn print_state_action_pairs(header: &str, list: &[f64]) {
+    fn print_observation_action_pairs(header: &str, list: &[f64]) {
         println!("{header}");
-        for (acts, s) in list.chunks(AC::ACTIONS.len() + 1).zip(S::STATES) {
+        for (acts, s) in list.chunks(AC::ACTIONS.len() + 1).zip(S::OBSERVATIONS) {
             print!("{s:?} ");
             for (action, value) in AC::ACTIONS.iter().zip(acts) {
                 print!("[{action:?}; {value}] ");
@@ -54,34 +54,36 @@ trait MonteCarlo<
         }
     }
 
-    fn markov_reward_process_state_action_pair_index(trajectory: &Trajectory<S, AC>) -> usize {
-        let (state_pos, action_pos) = match trajectory {
+    fn markov_reward_process_observation_action_pair_index(
+        trajectory: &Trajectory<S, AC>,
+    ) -> usize {
+        let (observation_pos, action_pos) = match trajectory {
             Trajectory::Step {
-                state,
+                observation,
                 action,
                 reward: _,
             } => {
-                let state_pos = S::STATES
+                let observation_pos = S::OBSERVATIONS
                     .iter()
-                    .position(|const_state| const_state.eq(state));
+                    .position(|discrete_observation| discrete_observation.eq(observation));
                 let action_pos = AC::ACTIONS
                     .iter()
                     .position(|const_action| const_action.eq(action));
-                (state_pos, action_pos)
+                (observation_pos, action_pos)
             }
-            Trajectory::Final { state } => {
-                let state_pos = S::STATES
+            Trajectory::Final { observation } => {
+                let observation_pos = S::OBSERVATIONS
                     .iter()
-                    .position(|const_state| const_state.eq(state));
-                (state_pos, Some(AC::ACTIONS.len()))
+                    .position(|discrete_observation| discrete_observation.eq(observation));
+                (observation_pos, Some(AC::ACTIONS.len()))
             }
         };
-        match (state_pos, action_pos) {
-            (Some(state_index), Some(action_index)) => {
-                state_index * (AC::ACTIONS.len() + 1) + action_index
+        match (observation_pos, action_pos) {
+            (Some(observation_index), Some(action_index)) => {
+                observation_index * (AC::ACTIONS.len() + 1) + action_index
             }
             (None, _) => {
-                panic!("The Trajectory contains a State that is not present on the list of possible States")
+                panic!("The Trajectory contains a Observation that is not present on the list of possible Observations")
             }
             (_, None) => {
                 panic!("The Trajectory contains an Action that is not present on the list of possible Actions")

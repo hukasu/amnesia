@@ -5,9 +5,12 @@ where
     Self: Sized,
 {
     type Action: crate::action::Action;
-    type State: crate::state::State;
+    type Observation: crate::observation::Observation;
 
-    fn act(&self, state: impl Borrow<Self::State>) -> Self::Action;
+    fn act(&self, observation: impl Borrow<Self::Observation>) -> Self::Action;
 
-    fn policy_improvemnt(&mut self, value_function: impl Fn(&Self::State, &Self::Action) -> f64);
+    fn policy_improvemnt(
+        &mut self,
+        value_function: impl Fn(&Self::Observation, &Self::Action) -> f64,
+    );
 }

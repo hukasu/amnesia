@@ -16,7 +16,7 @@ pub trait PolicyEstimator {
     fn calculate_return<
         I: Borrow<
             Trajectory<
-                <<Self::Environment as Environment>::Agent as Agent>::State,
+                <<Self::Environment as Environment>::Agent as Agent>::Observation,
                 <<Self::Environment as Environment>::Agent as Agent>::Action,
             >,
         >,
@@ -28,11 +28,11 @@ pub trait PolicyEstimator {
             .into_iter()
             .chain(trajectory.filter_map(|step| match step.borrow() {
                 Trajectory::Step {
-                    state: _,
+                    observation: _,
                     action: _,
                     reward,
                 } => Some(*reward),
-                Trajectory::Final { state: _ } => None,
+                Trajectory::Final { observation: _ } => None,
             }))
             .collect::<Vec<_>>();
         let mut returns = rewards

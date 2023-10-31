@@ -1,6 +1,12 @@
-use crate::{action::Action, state::State};
+use crate::{action::Action, observation::Observation};
 
-pub enum Trajectory<S: State, A: Action> {
-    Step { state: S, action: A, reward: f64 },
-    Final { state: S },
+pub enum Trajectory<S: Observation, A: Action> {
+    Step {
+        observation: S,
+        action: A,
+        reward: f64,
+    },
+    Final {
+        observation: S,
+    },
 }
