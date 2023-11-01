@@ -1,11 +1,25 @@
-use std::marker::PhantomData;
+use std::{error::Error, fmt::Display, marker::PhantomData};
 
 use crate::{
-    action::DiscreteAction, observation::DiscreteObservation,
+    action::DiscreteAction, observation::DiscreteObservation, policy::Policy,
     random_number_generator::RandomNumberGeneratorFacade,
 };
 
-use super::{Policy, PolicyError};
+#[derive(Debug)]
+pub enum EpsilonGreedyPolicyError {
+    EpsilonOutOfRange,
+}
+
+impl Display for EpsilonGreedyPolicyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let m = match self {
+            Self::EpsilonOutOfRange => "Epsilon must be between [0, 1).",
+        };
+        write!(f, "{m}")
+    }
+}
+
+impl Error for EpsilonGreedyPolicyError {}
 
 pub struct EpsilonGreedyPolicy<A: DiscreteAction, S: DiscreteObservation> {
     epsilon: f64,
@@ -18,7 +32,7 @@ impl<A: DiscreteAction, S: DiscreteObservation> EpsilonGreedyPolicy<A, S> {
     pub fn new(
         epsilon: f64,
         rng_facade: Box<dyn RandomNumberGeneratorFacade>,
-    ) -> Result<Self, PolicyError> {
+    ) -> Result<Self, EpsilonGreedyPolicyError> {
         if (0.0f64..1.0).contains(&epsilon) {
             let random_start = S::OBSERVATIONS
                 .iter()
@@ -31,9 +45,7 @@ impl<A: DiscreteAction, S: DiscreteObservation> EpsilonGreedyPolicy<A, S> {
                 observation_phantom: PhantomData,
             })
         } else {
-            Err(PolicyError::new(format!(
-                "EpsilonGreedyPolicy requires an `epsilon` between `0.0` and `1.0`. Received {epsilon}"
-            )))
+            Err(EpsilonGreedyPolicyError::EpsilonOutOfRange)
         }
     }
 }
@@ -50,9 +62,9 @@ impl<A: DiscreteAction, S: DiscreteObservation> Policy for EpsilonGreedyPolicy<A
                 .iter()
                 .zip(self.observation_action_mapping.iter())
                 .find_map(|(s, action)| {
-                    Some(action).copied().filter(|_| s.eq(observation.borrow()))
+                    Some(action).filter(|_| s.eq(observation.borrow())).copied()
                 })
-                .expect("All observations must have a corresponding action.")
+                .expect("All observations must map to an action.")
         }
     }
 
