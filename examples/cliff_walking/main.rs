@@ -6,7 +6,10 @@ use amnesia::{
     policy::{epsilon_greedy::EpsilonGreedyPolicy, Policy},
     random_number_generator::RandomNumberGeneratorFacade,
     reinforcement_learning::{
-        monte_carlo::{ConstantAlphaMonteCarlo, EveryVisitMonteCarlo, FirstVisitMonteCarlo},
+        monte_carlo::{
+            ConstantAlphaMonteCarlo, EveryVisitMonteCarlo, FirstVisitMonteCarlo,
+            IncrementalMonteCarlo,
+        },
         PolicyEstimator,
     },
 };
@@ -137,7 +140,7 @@ impl RandomNumberGeneratorFacade for RandFacade {
 fn main() {
     const EPISODES: usize = 1000000;
     const RETURN_DISCOUNT: f64 = 0.75;
-    const ALPHA: f64 = 0.1;
+    const ALPHA: f64 = 1. / 64.;
     const EPSILON: f64 = 0.1;
 
     let mut cliff = Cliff {
@@ -160,7 +163,15 @@ fn main() {
     EveryVisitMonteCarlo::<Cliff>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cliff, &mut agent);
 
-    println!("Constant Alpha Visit Monte Carlo");
+    println!("Incremental Monte Carlo");
+    let random = RandFacade;
+    let mut agent = CliffWalker {
+        policy: EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap(),
+    };
+    IncrementalMonteCarlo::<Cliff>::new(RETURN_DISCOUNT, EPISODES)
+        .policy_search(&mut cliff, &mut agent);
+
+    println!("Constant Alpha Monte Carlo");
     let random = RandFacade;
     let mut agent = CliffWalker {
         policy: EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap(),
