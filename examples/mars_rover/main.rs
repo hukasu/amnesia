@@ -8,8 +8,11 @@ use amnesia::{
     policy::{epsilon_greedy::EpsilonGreedyPolicy, Policy},
     random_number_generator::RandomNumberGeneratorFacade,
     reinforcement_learning::{
-        monte_carlo::ConstantAlphaMonteCarlo, monte_carlo::EveryVisitMonteCarlo,
-        monte_carlo::FirstVisitMonteCarlo, PolicyEstimator,
+        monte_carlo::{
+            ConstantAlphaMonteCarlo, EveryVisitMonteCarlo, FirstVisitMonteCarlo,
+            IncrementalMonteCarlo,
+        },
+        PolicyEstimator,
     },
 };
 
@@ -147,6 +150,7 @@ impl RandomNumberGeneratorFacade for RandFacade {
 fn main() {
     const EPISODES: usize = 10000000;
     const RETURN_DISCOUNT: f64 = 1.;
+    const EPSILON: f64 = 0.05;
     const ALPHA: f64 = 0.1;
 
     let mut mars = Mars {
@@ -155,19 +159,25 @@ fn main() {
 
     println!("First Visit Monte Carlo");
     let random = RandFacade;
-    let mut agent = Rover(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
     FirstVisitMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut mars, &mut agent);
 
     println!("Every Visit Monte Carlo");
     let random = RandFacade;
-    let mut agent = Rover(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
     EveryVisitMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut mars, &mut agent);
 
-    println!("Constant Alpha Visit Monte Carlo");
+    println!("Incremental Monte Carlo");
     let random = RandFacade;
-    let mut agent = Rover(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    IncrementalMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES)
+        .policy_search(&mut mars, &mut agent);
+
+    println!("Constant Alpha Monte Carlo");
+    let random = RandFacade;
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
     ConstantAlphaMonteCarlo::<Mars>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut mars, &mut agent);
 }
