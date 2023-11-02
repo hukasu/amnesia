@@ -6,8 +6,10 @@ use amnesia::{
     policy::{epsilon_greedy::EpsilonGreedyPolicy, Policy},
     random_number_generator::RandomNumberGeneratorFacade,
     reinforcement_learning::{
-        monte_carlo::ConstantAlphaMonteCarlo, monte_carlo::EveryVisitMonteCarlo,
-        monte_carlo::FirstVisitMonteCarlo, PolicyEstimator,
+        monte_carlo::ConstantAlphaMonteCarlo,
+        monte_carlo::FirstVisitMonteCarlo,
+        monte_carlo::{EveryVisitMonteCarlo, IncrementalMonteCarlo},
+        PolicyEstimator,
     },
 };
 
@@ -108,25 +110,32 @@ impl RandomNumberGeneratorFacade for RandFacade {
 fn main() {
     const EPISODES: usize = 10000000;
     const RETURN_DISCOUNT: f64 = 1.;
+    const EPSILON: f64 = 0.05;
     const ALPHA: f64 = 0.05;
 
     let mut cassino = Cassino(false);
 
     println!("First Visit Monte Carlo");
     let random = RandFacade;
-    let mut agent = Player(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
     FirstVisitMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cassino, &mut agent);
 
     println!("Every Visit Monte Carlo");
     let random = RandFacade;
-    let mut agent = Player(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
     EveryVisitMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cassino, &mut agent);
 
-    println!("Constant Alpha Visit Monte Carlo");
+    println!("Incremental Monte Carlo");
     let random = RandFacade;
-    let mut agent = Player(EpsilonGreedyPolicy::new(0.05, Box::new(random)).unwrap());
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    IncrementalMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES)
+        .policy_search(&mut cassino, &mut agent);
+
+    println!("Constant Alpha Monte Carlo");
+    let random = RandFacade;
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
     ConstantAlphaMonteCarlo::<Cassino>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cassino, &mut agent);
 }
