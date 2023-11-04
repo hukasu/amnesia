@@ -17,7 +17,7 @@ pub trait PolicyEstimator {
     /// `G{t,i} = r{t,i} + γ r{t+1,i} + γ^2 r{t+2,i} + ... +  γ^{Ti-1} r{Ti,i}` where
     /// `i` is an episode, `t` is the time step of the episode `i`,
     /// `Ti` is the last step of the episode `i`, and `γ` is the return discount.
-    fn calculate_return<
+    fn discounted_return<
         I: Borrow<
             Trajectory<
                 <<Self::Environment as Environment>::Agent as Agent>::Observation,
@@ -28,23 +28,18 @@ pub trait PolicyEstimator {
         trajectory: impl Iterator<Item = I> + DoubleEndedIterator,
         return_discount: f64,
     ) -> Vec<f64> {
-        let rewards = [0.]
-            .into_iter()
-            .chain(trajectory.filter_map(|step| match step.borrow() {
+        let mut returns = trajectory
+            .filter_map(|step| match step.borrow() {
                 Trajectory::Step {
                     observation: _,
                     action: _,
                     reward,
                 } => Some(*reward),
                 Trajectory::Final { observation: _ } => None,
-            }))
-            .collect::<Vec<_>>();
-        let mut returns = rewards
-            .into_iter()
+            })
             .rev()
-            .enumerate()
-            .scan(0., |prev, (i, cur)| {
-                *prev += return_discount.powi(i as i32) * cur;
+            .scan(0., |prev, cur| {
+                *prev = cur + return_discount * *prev;
                 Some(*prev)
             })
             .collect::<Vec<_>>();

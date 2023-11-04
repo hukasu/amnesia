@@ -47,7 +47,7 @@ impl<
 
         for _episode in 0..self.episodes {
             let trajectory = Self::generate_trajectory(environment, agent);
-            let episode_returns = Self::calculate_return(trajectory.iter(), self.return_discount);
+            let episode_returns = Self::discounted_return(trajectory.iter(), self.return_discount);
 
             for (step, g_t) in trajectory.iter().zip(episode_returns.iter()) {
                 let markov_reward_process_index =
