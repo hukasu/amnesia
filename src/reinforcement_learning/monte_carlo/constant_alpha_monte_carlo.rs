@@ -52,11 +52,12 @@ impl<
             let episode_returns = Self::calculate_return(trajectory.iter(), self.return_discount);
 
             for (step, g_t) in trajectory.iter().zip(episode_returns.iter()) {
-                let composite_index =
+                let markov_reward_process_index =
                     Self::markov_reward_process_observation_action_pair_index(step);
-                visit_count[composite_index] += 1;
-                observation_values[composite_index] = observation_values[composite_index]
-                    + self.alpha * (g_t - observation_values[composite_index]);
+                visit_count[markov_reward_process_index] += 1;
+                observation_values[markov_reward_process_index] = observation_values
+                    [markov_reward_process_index]
+                    + self.alpha * (g_t - observation_values[markov_reward_process_index]);
             }
 
             let value_function = |observation: &S, action: &AC| {
@@ -68,9 +69,9 @@ impl<
                     .position(|const_action| const_action.eq(action));
                 match (observation_pos, action_pos) {
                     (Some(observation_index), Some(action_index)) => {
-                        let composite_index =
+                        let markov_reward_process_index =
                             observation_index * (AC::ACTIONS.len() + 1) + action_index;
-                        observation_values[composite_index]
+                        observation_values[markov_reward_process_index]
                     }
                     (None, _) => {
                         panic!("The Trajectory contains a Observation that is not present on the list of possible Observations")
