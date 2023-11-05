@@ -46,10 +46,11 @@ impl<
         let mut returns = vec![0.0f64; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
         let mut observation_values = vec![0.0f64; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
         let mut trajectory = vec![];
+        let mut episode_returns = vec![];
 
         for _episode in 0..self.episodes {
             Self::generate_trajectory(environment, agent, &mut trajectory);
-            let episode_returns = Self::discounted_return(trajectory.iter(), self.return_discount);
+            Self::discounted_return(&trajectory, self.return_discount, &mut episode_returns);
 
             for (step, g_t) in trajectory.iter().zip(episode_returns.iter()) {
                 let markov_reward_process_index =
