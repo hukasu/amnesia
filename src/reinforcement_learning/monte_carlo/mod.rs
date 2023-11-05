@@ -24,9 +24,13 @@ trait MonteCarlo<
     E: EpisodicEnvironment<Agent = AG>,
 >: PolicyEstimator<Environment = E>
 {
-    fn generate_trajectory(environment: &mut E, agent: &mut E::Agent) -> Vec<Trajectory<S, AC>> {
+    fn generate_trajectory(
+        environment: &mut E,
+        agent: &mut E::Agent,
+        trajectory: &mut Vec<Trajectory<S, AC>>,
+    ) {
         environment.reset_environment();
-        let mut trajectory = vec![];
+        trajectory.clear();
 
         while let Some(observation) = environment.get_observation(agent.borrow_mut()) {
             let action = (agent.borrow_mut()).act(&observation);
@@ -41,8 +45,6 @@ trait MonteCarlo<
         trajectory.push(Trajectory::Final {
             observation: environment.final_observation(agent),
         });
-
-        trajectory
     }
 
     fn print_observation_action_pairs(header: &str, list: &[f64]) {

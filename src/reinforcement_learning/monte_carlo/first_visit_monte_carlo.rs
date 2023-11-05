@@ -45,11 +45,12 @@ impl<
         let mut visit_count = vec![0usize; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
         let mut returns = vec![0.0f64; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
         let mut observation_values = vec![0.0f64; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
+        let mut trajectory = vec![];
 
         for _episode in 0..self.episodes {
-            let trajectory = Self::generate_trajectory(environment, agent);
-            let mut visited: Vec<bool> = vec![false; S::OBSERVATIONS.len()];
+            Self::generate_trajectory(environment, agent, &mut trajectory);
             let episode_returns = Self::discounted_return(trajectory.iter(), self.return_discount);
+            let mut visited: Vec<bool> = vec![false; S::OBSERVATIONS.len()];
 
             for (step, g_t) in trajectory.iter().zip(episode_returns.iter()) {
                 let observation_index = {
