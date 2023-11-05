@@ -49,12 +49,12 @@ trait MonteCarlo<
 
     fn print_observation_action_pairs(header: &str, list: &[f64]) {
         println!("{header}");
-        for (acts, s) in list.chunks(AC::ACTIONS.len() + 1).zip(S::OBSERVATIONS) {
+        for (acts, s) in list.chunks(AC::ACTIONS.len()).zip(S::OBSERVATIONS) {
             print!("{s:?} ");
             for (action, value) in AC::ACTIONS.iter().zip(acts) {
                 print!("[{action:?}; {value}] ");
             }
-            println!("[Final; {:?}]", acts.last().unwrap_or(&0.));
+            println!();
         }
     }
 
@@ -75,16 +75,11 @@ trait MonteCarlo<
                     .position(|const_action| const_action.eq(action));
                 (observation_pos, action_pos)
             }
-            Trajectory::Final { observation } => {
-                let observation_pos = S::OBSERVATIONS
-                    .iter()
-                    .position(|discrete_observation| discrete_observation.eq(observation));
-                (observation_pos, Some(AC::ACTIONS.len()))
-            }
+            Trajectory::Final { observation: _ } => panic!("Can't turn the final step of a Trajectory into an index for a Markov Reward Process.")
         };
         match (observation_pos, action_pos) {
             (Some(observation_index), Some(action_index)) => {
-                observation_index * (AC::ACTIONS.len() + 1) + action_index
+                observation_index * AC::ACTIONS.len() + action_index
             }
             (None, _) => {
                 panic!("The Trajectory contains a Observation that is not present on the list of possible Observations")

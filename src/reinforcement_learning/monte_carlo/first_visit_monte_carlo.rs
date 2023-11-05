@@ -42,9 +42,9 @@ impl<
     type Environment = E;
 
     fn policy_search(self, environment: &mut Self::Environment, agent: &mut E::Agent) {
-        let mut visit_count = vec![0usize; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
-        let mut returns = vec![0.0f64; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
-        let mut observation_values = vec![0.0f64; S::OBSERVATIONS.len() * (AC::ACTIONS.len() + 1)];
+        let mut visit_count = vec![0usize; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
+        let mut returns = vec![0.0f64; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
+        let mut observation_values = vec![0.0f64; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
         let mut trajectory = vec![];
         let mut episode_returns = vec![];
 
@@ -92,7 +92,7 @@ impl<
                 match (observation_pos, action_pos) {
                     (Some(observation_index), Some(action_index)) => {
                         let markov_reward_process_index =
-                            observation_index * (AC::ACTIONS.len() + 1) + action_index;
+                            observation_index * AC::ACTIONS.len() + action_index;
                         observation_values[markov_reward_process_index]
                     }
                     (None, _) => {
