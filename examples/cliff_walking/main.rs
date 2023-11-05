@@ -102,6 +102,7 @@ impl Environment for Cliff {
             Walk::Left => (-1, 0),
             Walk::Right => (1, 0),
         };
+        let old_pos = self.walker_position;
         self.walker_position = {
             let CliffPath(x, y) = self.walker_position;
             CliffPath(
@@ -110,6 +111,7 @@ impl Environment for Cliff {
             )
         };
         match self.walker_position {
+            cliff if cliff.eq(&old_pos) => -5.,
             CliffPath(x, 0) if x == LEN - 1 => 10.,
             CliffPath(x, 0) if x != 0 => -100.,
             _ => -1.,
