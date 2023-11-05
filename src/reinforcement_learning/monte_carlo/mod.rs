@@ -89,4 +89,29 @@ trait MonteCarlo<
             }
         }
     }
+
+    fn make_value_fuction<'a>(observation_values: &'a [f64]) -> Box<dyn Fn(&S, &AC) -> f64 + 'a> {
+        let value_function = |observation: &S, action: &AC| {
+            let observation_pos = S::OBSERVATIONS
+                .iter()
+                .position(|discrete_observation| discrete_observation.eq(observation));
+            let action_pos = AC::ACTIONS
+                .iter()
+                .position(|const_action| const_action.eq(action));
+            match (observation_pos, action_pos) {
+                (Some(observation_index), Some(action_index)) => {
+                    let markov_reward_process_index =
+                        observation_index * AC::ACTIONS.len() + action_index;
+                    observation_values[markov_reward_process_index]
+                }
+                (None, _) => {
+                    panic!("The Trajectory contains a Observation that is not present on the list of possible Observations")
+                }
+                (_, None) => {
+                    panic!("The Trajectory contains an Action that is not present on the list of possible Actions")
+                }
+            }
+        };
+        Box::new(value_function)
+    }
 }
