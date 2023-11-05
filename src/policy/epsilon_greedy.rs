@@ -59,17 +59,15 @@ impl<A: DiscreteAction, S: DiscreteObservation, RNG: RandomNumberGeneratorFacade
     type Observation = S;
     type Action = A;
 
-    fn act(&self, observation: impl std::borrow::Borrow<Self::Observation>) -> Self::Action {
+    fn act(&self, observation: &Self::Observation) -> Self::Action {
         if self.rng_facade.random().lt(&self.epsilon) {
             A::ACTIONS[(self.rng_facade.random() * A::ACTIONS.len() as f64) as usize]
         } else {
-            S::OBSERVATIONS
+            let obs_index = S::OBSERVATIONS
                 .iter()
-                .zip(self.observation_action_mapping.iter())
-                .find_map(|(s, action)| {
-                    Some(action).filter(|_| s.eq(observation.borrow())).copied()
-                })
-                .expect("All observations must map to an action.")
+                .position(|obs| obs.eq(observation))
+                .expect("All observations must map to an action.");
+            self.observation_action_mapping[obs_index]
         }
     }
 

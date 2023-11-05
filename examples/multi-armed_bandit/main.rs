@@ -88,7 +88,7 @@ impl Agent for Player {
     type Observation = MultiArmedBanditObservation;
 
     fn act(&self, observation: impl std::borrow::Borrow<Self::Observation>) -> Self::Action {
-        self.0.act(observation)
+        self.0.act(observation.borrow())
     }
 
     fn policy_improvemnt(

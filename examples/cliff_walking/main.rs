@@ -63,7 +63,7 @@ impl Agent for CliffWalker {
     type Observation = CliffPath;
 
     fn act(&self, observation: impl std::borrow::Borrow<Self::Observation>) -> Self::Action {
-        self.policy.act(observation)
+        self.policy.act(observation.borrow())
     }
 
     fn policy_improvemnt(
@@ -129,6 +129,7 @@ impl EpisodicEnvironment for Cliff {
         self.walker_position
     }
 }
+
 struct RandFacade;
 
 impl RandomNumberGeneratorFacade for RandFacade {
