@@ -142,7 +142,7 @@ impl RandomNumberGeneratorFacade for RandFacade {
 
 fn main() {
     const EPISODES: usize = 1000000;
-    const RETURN_DISCOUNT: f64 = 0.75;
+    const RETURN_DISCOUNT: f64 = 1. - (1. / 16.);
     const ALPHA: f64 = 1. / 64.;
     const EPSILON: f64 = 0.1;
 
