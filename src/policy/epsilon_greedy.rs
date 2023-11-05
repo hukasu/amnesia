@@ -21,18 +21,21 @@ impl Display for EpsilonGreedyPolicyError {
 
 impl Error for EpsilonGreedyPolicyError {}
 
-pub struct EpsilonGreedyPolicy<A: DiscreteAction, S: DiscreteObservation> {
+pub struct EpsilonGreedyPolicy<
+    A: DiscreteAction,
+    S: DiscreteObservation,
+    RNG: RandomNumberGeneratorFacade,
+> {
     epsilon: f64,
-    rng_facade: Box<dyn RandomNumberGeneratorFacade>,
+    rng_facade: RNG,
     observation_action_mapping: Vec<A>,
     observation_phantom: PhantomData<S>,
 }
 
-impl<A: DiscreteAction, S: DiscreteObservation> EpsilonGreedyPolicy<A, S> {
-    pub fn new(
-        epsilon: f64,
-        rng_facade: Box<dyn RandomNumberGeneratorFacade>,
-    ) -> Result<Self, EpsilonGreedyPolicyError> {
+impl<A: DiscreteAction, S: DiscreteObservation, RNG: RandomNumberGeneratorFacade>
+    EpsilonGreedyPolicy<A, S, RNG>
+{
+    pub fn new(epsilon: f64, rng_facade: RNG) -> Result<Self, EpsilonGreedyPolicyError> {
         if (0.0f64..1.0).contains(&epsilon) {
             let random_start = S::OBSERVATIONS
                 .iter()
@@ -50,7 +53,9 @@ impl<A: DiscreteAction, S: DiscreteObservation> EpsilonGreedyPolicy<A, S> {
     }
 }
 
-impl<A: DiscreteAction, S: DiscreteObservation> Policy for EpsilonGreedyPolicy<A, S> {
+impl<A: DiscreteAction, S: DiscreteObservation, RNG: RandomNumberGeneratorFacade> Policy
+    for EpsilonGreedyPolicy<A, S, RNG>
+{
     type Observation = S;
     type Action = A;
 

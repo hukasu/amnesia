@@ -55,7 +55,7 @@ impl DiscreteAction for Walk {
 }
 
 struct CliffWalker {
-    policy: EpsilonGreedyPolicy<Walk, CliffPath>,
+    policy: EpsilonGreedyPolicy<Walk, CliffPath, RandFacade>,
 }
 
 impl Agent for CliffWalker {
@@ -148,33 +148,29 @@ fn main() {
     };
 
     println!("First Visit Monte Carlo");
-    let random = RandFacade;
     let mut agent = CliffWalker {
-        policy: EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap(),
+        policy: EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap(),
     };
     FirstVisitMonteCarlo::<Cliff>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cliff, &mut agent);
 
     println!("Every Visit Monte Carlo");
-    let random = RandFacade;
     let mut agent = CliffWalker {
-        policy: EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap(),
+        policy: EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap(),
     };
     EveryVisitMonteCarlo::<Cliff>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cliff, &mut agent);
 
     println!("Incremental Monte Carlo");
-    let random = RandFacade;
     let mut agent = CliffWalker {
-        policy: EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap(),
+        policy: EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap(),
     };
     IncrementalMonteCarlo::<Cliff>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cliff, &mut agent);
 
     println!("Constant Alpha Monte Carlo");
-    let random = RandFacade;
     let mut agent = CliffWalker {
-        policy: EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap(),
+        policy: EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap(),
     };
     ConstantAlphaMonteCarlo::<Cliff>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cliff, &mut agent);

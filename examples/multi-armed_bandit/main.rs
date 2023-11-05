@@ -82,7 +82,7 @@ impl EpisodicEnvironment for Cassino {
     }
 }
 
-struct Player(EpsilonGreedyPolicy<MultiArmedBanditAction, MultiArmedBanditObservation>);
+struct Player(EpsilonGreedyPolicy<MultiArmedBanditAction, MultiArmedBanditObservation, RandFacade>);
 impl Agent for Player {
     type Action = MultiArmedBanditAction;
     type Observation = MultiArmedBanditObservation;
@@ -116,26 +116,22 @@ fn main() {
     let mut cassino = Cassino(false);
 
     println!("First Visit Monte Carlo");
-    let random = RandFacade;
-    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     FirstVisitMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cassino, &mut agent);
 
     println!("Every Visit Monte Carlo");
-    let random = RandFacade;
-    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     EveryVisitMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cassino, &mut agent);
 
     println!("Incremental Monte Carlo");
-    let random = RandFacade;
-    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     IncrementalMonteCarlo::<Cassino>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cassino, &mut agent);
 
     println!("Constant Alpha Monte Carlo");
-    let random = RandFacade;
-    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     ConstantAlphaMonteCarlo::<Cassino>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cassino, &mut agent);
 }

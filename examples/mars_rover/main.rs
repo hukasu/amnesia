@@ -53,7 +53,7 @@ impl DiscreteObservation for MarsSpace {
     ];
 }
 
-struct Rover(EpsilonGreedyPolicy<RoverAction, MarsSpace>);
+struct Rover(EpsilonGreedyPolicy<RoverAction, MarsSpace, RandFacade>);
 
 impl Agent for Rover {
     type Action = RoverAction;
@@ -158,26 +158,22 @@ fn main() {
     };
 
     println!("First Visit Monte Carlo");
-    let random = RandFacade;
-    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     FirstVisitMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut mars, &mut agent);
 
     println!("Every Visit Monte Carlo");
-    let random = RandFacade;
-    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     EveryVisitMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut mars, &mut agent);
 
     println!("Incremental Monte Carlo");
-    let random = RandFacade;
-    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     IncrementalMonteCarlo::<Mars>::new(RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut mars, &mut agent);
 
     println!("Constant Alpha Monte Carlo");
-    let random = RandFacade;
-    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, Box::new(random)).unwrap());
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     ConstantAlphaMonteCarlo::<Mars>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut mars, &mut agent);
 }
