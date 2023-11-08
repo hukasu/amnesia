@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::marker::PhantomData;
 
 use crate::{
@@ -48,10 +49,19 @@ impl<
         let mut trajectory = vec![];
         let mut episode_returns = vec![];
 
-        for _episode in 0..self.episodes {
+        let mut episode = 0usize;
+        let mut episode_variation_window = VecDeque::from_iter([f64::MAX; 5]);
+        while episode_variation_window
+            .iter()
+            .any(|ep_v| ep_v > &f64::EPSILON)
+            && episode < self.episodes
+        {
+            episode += 1;
+            let mut episode_variation = 0.;
+
             Self::generate_trajectory(environment, agent, &mut trajectory);
             Self::discounted_return(&trajectory, self.return_discount, &mut episode_returns);
-            let mut visited: Vec<bool> = vec![false; S::OBSERVATIONS.len()];
+            let mut visited: Vec<bool> = vec![false; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
 
             for (step, g_t) in trajectory.iter().zip(episode_returns.iter()) {
                 let observation_index = {
@@ -76,11 +86,17 @@ impl<
                     visited[observation_index] = true;
                     visit_count[markov_reward_process_index] += 1;
                     returns[markov_reward_process_index] += g_t;
+                    let old_observation_value = observation_values[markov_reward_process_index];
                     observation_values[markov_reward_process_index] = returns
                         [markov_reward_process_index]
                         / visit_count[markov_reward_process_index] as f64;
+                    episode_variation += (old_observation_value
+                        - observation_values[markov_reward_process_index])
+                        .powi(2);
                 }
             }
+            episode_variation_window.pop_front();
+            episode_variation_window.push_back(episode_variation);
 
             let value_function = Self::make_value_fuction(&observation_values);
             agent.policy_improvemnt(value_function);
@@ -92,6 +108,7 @@ impl<
         );
         Self::print_observation_action_pairs("Returns", &returns);
         Self::print_observation_action_pairs("Action Value Function", &observation_values);
+        println!("Converged in {} episodes.", episode);
     }
 }
 
