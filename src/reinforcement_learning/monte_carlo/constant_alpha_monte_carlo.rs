@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::marker::PhantomData;
 
 use crate::{
@@ -49,7 +50,15 @@ impl<
         let mut trajectory = vec![];
         let mut episode_returns = vec![];
 
-        for _episode in 0..self.episodes {
+        let mut episode = 0usize;
+        let mut episode_variation_window = VecDeque::from_iter([f64::MAX; 5]);
+        while episode_variation_window
+            .iter()
+            .any(|ep_v| ep_v > &f64::EPSILON)
+            && episode < self.episodes
+        {
+            episode += 1;
+            let mut episode_variation = 0.;
             Self::generate_trajectory(environment, agent, &mut trajectory);
             Self::discounted_return(&trajectory, self.return_discount, &mut episode_returns);
 
@@ -57,10 +66,17 @@ impl<
                 let markov_reward_process_index =
                     Self::markov_reward_process_observation_action_pair_index(step);
                 visit_count[markov_reward_process_index] += 1;
+
+                let old_observation_value = observation_values[markov_reward_process_index];
                 observation_values[markov_reward_process_index] = observation_values
                     [markov_reward_process_index]
                     + self.alpha * (g_t - observation_values[markov_reward_process_index]);
+                episode_variation += (old_observation_value
+                    - observation_values[markov_reward_process_index])
+                    .powi(2);
             }
+            episode_variation_window.pop_front();
+            episode_variation_window.push_back(episode_variation);
 
             let value_function = Self::make_value_fuction(&observation_values);
             agent.policy_improvemnt(value_function);
@@ -71,6 +87,7 @@ impl<
             &visit_count.iter().map(|u| *u as f64).collect::<Vec<_>>(),
         );
         Self::print_observation_action_pairs("Action Value Function", &observation_values);
+        println!("Converged in {} episodes.", episode);
     }
 }
 
