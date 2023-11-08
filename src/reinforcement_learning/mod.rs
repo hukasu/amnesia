@@ -25,7 +25,6 @@ pub trait PolicyEstimator {
         return_discount: f64,
         episode_returns: &mut Vec<f64>,
     ) {
-        episode_returns.clear();
         episode_returns.resize(trajectory.len() - 1, 0.);
 
         trajectory
