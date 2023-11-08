@@ -17,9 +17,6 @@ use crate::{
     trajectory::Trajectory,
 };
 
-type ValueUpdateFunction<S, A> =
-    dyn Fn(&Trajectory<S, A>, &f64, &mut [bool], &mut [usize], &mut [f64], &mut [f64]) -> f64;
-
 trait MonteCarlo<
     AC: DiscreteAction,
     S: DiscreteObservation,
@@ -27,13 +24,31 @@ trait MonteCarlo<
     E: EpisodicEnvironment<Agent = AG>,
 >: PolicyEstimator<Environment = E>
 {
+    /// Updates the value of a Markov Reward Process state
+    ///
+    /// # Arguments
+    /// `step`: The step within a trajectory
+    /// `step_return`: Discounted return from step
+    /// `visited`: Flags that inform if the state has already been visited on trajectory
+    /// `visit_count`: Number of times that state has been visited
+    /// `total_returns`: Sum of returns of state across all episodes
+    /// `observation_values`: States values  
+    fn step_update(
+        &self,
+        step: &Trajectory<S, AC>,
+        step_return: &f64,
+        visited: &mut [bool],
+        visit_count: &mut [usize],
+        total_returns: &mut [f64],
+        observation_values: &mut [f64],
+    ) -> f64;
+
     fn monte_carlo_policy_search(
         &self,
         environment: &mut E,
         agent: &mut AG,
         return_discount: f64,
         iteration_limit: usize,
-        step_update: &ValueUpdateFunction<S, AC>,
     ) {
         let mut visited: Vec<bool> = vec![false; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
         let mut visit_count = vec![0usize; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
@@ -59,7 +74,7 @@ trait MonteCarlo<
             Self::discounted_return(&trajectory, return_discount, &mut episode_returns);
 
             for (step, step_return) in trajectory.iter().zip(episode_returns.iter()) {
-                episode_variation += step_update(
+                episode_variation += self.step_update(
                     step,
                     step_return,
                     &mut visited,
