@@ -1,5 +1,7 @@
 use std::borrow::Borrow;
 
+use crate::ValueFunction;
+
 pub trait Agent
 where
     Self: Sized,
@@ -11,6 +13,6 @@ where
 
     fn policy_improvemnt(
         &mut self,
-        value_function: impl Fn(&Self::Observation, &Self::Action) -> f64,
+        value_function: &ValueFunction<Self::Observation, Self::Action>,
     );
 }

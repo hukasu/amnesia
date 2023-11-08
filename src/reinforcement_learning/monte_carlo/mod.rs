@@ -14,7 +14,7 @@ use std::{borrow::BorrowMut, collections::VecDeque};
 use crate::{
     action::DiscreteAction, agent::Agent, environment::EpisodicEnvironment,
     observation::DiscreteObservation, reinforcement_learning::PolicyEstimator,
-    trajectory::Trajectory,
+    trajectory::Trajectory, ValueFunction,
 };
 
 trait MonteCarlo<
@@ -27,12 +27,14 @@ trait MonteCarlo<
     /// Updates the value of a Markov Reward Process state
     ///
     /// # Arguments
-    /// `step`: The step within a trajectory
-    /// `step_return`: Discounted return from step
-    /// `visited`: Flags that inform if the state has already been visited on trajectory
-    /// `visit_count`: Number of times that state has been visited
-    /// `total_returns`: Sum of returns of state across all episodes
-    /// `observation_values`: States values  
+    /// `step`: The step within a trajectory</br>
+    /// `step_return`: Discounted return from step</br>
+    /// `visited`: Flags that inform if the state has already been visited on trajectory</br>
+    /// `visit_count`: Number of times that state has been visited</br>
+    /// `total_returns`: Sum of returns of state across all episodes</br>
+    /// `observation_values`: States values
+    /// # Return
+    /// Change to value squared
     fn step_update(
         &self,
         step: &Trajectory<S, AC>,
@@ -87,7 +89,7 @@ trait MonteCarlo<
             episode_variation_window.push_back(episode_variation);
 
             let value_function = Self::make_value_fuction(&observation_values);
-            agent.policy_improvemnt(value_function);
+            agent.policy_improvemnt(&value_function);
         }
 
         Self::print_observation_action_pairs(
@@ -164,7 +166,7 @@ trait MonteCarlo<
         }
     }
 
-    fn make_value_fuction<'a>(observation_values: &'a [f64]) -> Box<dyn Fn(&S, &AC) -> f64 + 'a> {
+    fn make_value_fuction(observation_values: &[f64]) -> Box<ValueFunction<S, AC>> {
         let value_function = |observation: &S, action: &AC| {
             let observation_pos = S::OBSERVATIONS
                 .iter()

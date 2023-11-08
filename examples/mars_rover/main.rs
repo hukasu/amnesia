@@ -14,6 +14,7 @@ use amnesia::{
         },
         PolicyEstimator,
     },
+    ValueFunction,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -65,7 +66,7 @@ impl Agent for Rover {
 
     fn policy_improvemnt(
         &mut self,
-        value_function: impl Fn(&Self::Observation, &Self::Action) -> f64,
+        value_function: &ValueFunction<Self::Observation, Self::Action>,
     ) {
         self.0.policy_improvemnt(value_function);
     }

@@ -12,6 +12,7 @@ use amnesia::{
         },
         PolicyEstimator,
     },
+    ValueFunction,
 };
 
 const LEN: usize = 12;
@@ -68,7 +69,7 @@ impl Agent for CliffWalker {
 
     fn policy_improvemnt(
         &mut self,
-        value_function: impl Fn(&Self::Observation, &Self::Action) -> f64,
+        value_function: &ValueFunction<Self::Observation, Self::Action>,
     ) {
         self.policy.policy_improvemnt(value_function)
     }

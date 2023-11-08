@@ -2,7 +2,7 @@ use std::{error::Error, fmt::Display, marker::PhantomData};
 
 use crate::{
     action::DiscreteAction, observation::DiscreteObservation, policy::Policy,
-    random_number_generator::RandomNumberGeneratorFacade,
+    random_number_generator::RandomNumberGeneratorFacade, ValueFunction,
 };
 
 #[derive(Debug)]
@@ -73,7 +73,7 @@ impl<A: DiscreteAction, S: DiscreteObservation, RNG: RandomNumberGeneratorFacade
 
     fn policy_improvemnt(
         &mut self,
-        value_function: impl Fn(&Self::Observation, &Self::Action) -> f64,
+        value_function: &ValueFunction<Self::Observation, Self::Action>,
     ) {
         self.observation_action_mapping
             .iter_mut()
