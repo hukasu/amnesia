@@ -3,19 +3,22 @@ mod every_visit_monte_carlo;
 mod first_visit_monte_carlo;
 mod incremental_monte_carlo;
 
-use std::borrow::BorrowMut;
+pub use self::{
+    constant_alpha_monte_carlo::ConstantAlphaMonteCarlo,
+    every_visit_monte_carlo::EveryVisitMonteCarlo, first_visit_monte_carlo::FirstVisitMonteCarlo,
+    incremental_monte_carlo::IncrementalMonteCarlo,
+};
 
-pub use constant_alpha_monte_carlo::ConstantAlphaMonteCarlo;
-pub use every_visit_monte_carlo::EveryVisitMonteCarlo;
-pub use first_visit_monte_carlo::FirstVisitMonteCarlo;
-pub use incremental_monte_carlo::IncrementalMonteCarlo;
+use std::{borrow::BorrowMut, collections::VecDeque};
 
 use crate::{
     action::DiscreteAction, agent::Agent, environment::EpisodicEnvironment,
-    observation::DiscreteObservation, trajectory::Trajectory,
+    observation::DiscreteObservation, reinforcement_learning::PolicyEstimator,
+    trajectory::Trajectory,
 };
 
-use super::PolicyEstimator;
+type ValueUpdateFunction<S, A> =
+    dyn Fn(&Trajectory<S, A>, &f64, &mut [bool], &mut [usize], &mut [f64], &mut [f64]) -> f64;
 
 trait MonteCarlo<
     AC: DiscreteAction,
@@ -24,6 +27,62 @@ trait MonteCarlo<
     E: EpisodicEnvironment<Agent = AG>,
 >: PolicyEstimator<Environment = E>
 {
+    fn monte_carlo_policy_search(
+        &self,
+        environment: &mut E,
+        agent: &mut AG,
+        return_discount: f64,
+        iteration_limit: usize,
+        step_update: &ValueUpdateFunction<S, AC>,
+    ) {
+        let mut visited: Vec<bool> = vec![false; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
+        let mut visit_count = vec![0usize; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
+        let mut total_returns = vec![0.0f64; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
+        let mut observation_values = vec![0.0f64; S::OBSERVATIONS.len() * AC::ACTIONS.len()];
+
+        let mut trajectory = vec![];
+        let mut episode_returns = vec![];
+
+        let mut episode = 0usize;
+        let mut episode_variation_window = VecDeque::from_iter([f64::MAX; 5]);
+        while episode_variation_window
+            .iter()
+            .any(|ep_v| ep_v > &f64::EPSILON)
+            && episode < iteration_limit
+        {
+            episode += 1;
+            visited.fill(false);
+
+            let mut episode_variation = 0.;
+
+            Self::generate_trajectory(environment, agent, &mut trajectory);
+            Self::discounted_return(&trajectory, return_discount, &mut episode_returns);
+
+            for (step, step_return) in trajectory.iter().zip(episode_returns.iter()) {
+                episode_variation += step_update(
+                    step,
+                    step_return,
+                    &mut visited,
+                    &mut visit_count,
+                    &mut total_returns,
+                    &mut observation_values,
+                );
+            }
+            episode_variation_window.pop_front();
+            episode_variation_window.push_back(episode_variation);
+
+            let value_function = Self::make_value_fuction(&observation_values);
+            agent.policy_improvemnt(value_function);
+        }
+
+        Self::print_observation_action_pairs(
+            "Observation Visit Count",
+            &visit_count.iter().map(|u| *u as f64).collect::<Vec<_>>(),
+        );
+        Self::print_observation_action_pairs("Action Value Function", &observation_values);
+        println!("Iterated for {} episodes.", episode);
+    }
+
     fn generate_trajectory(
         environment: &mut E,
         agent: &mut E::Agent,
