@@ -10,6 +10,7 @@ use amnesia::{
             ConstantAlphaMonteCarlo, EveryVisitMonteCarlo, FirstVisitMonteCarlo,
             IncrementalMonteCarlo,
         },
+        sarsa::SARSA,
         PolicyEstimator,
     },
     ValueFunction,
@@ -172,4 +173,8 @@ fn main() {
     let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     ConstantAlphaMonteCarlo::<Mars>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut mars, &mut agent);
+
+    println!("SARSA");
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
+    SARSA::<Mars>::new(EPISODES, ALPHA, RETURN_DISCOUNT).policy_search(&mut mars, &mut agent);
 }
