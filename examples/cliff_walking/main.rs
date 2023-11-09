@@ -84,7 +84,7 @@ impl Environment for Cliff {
 
     fn get_observation(
         &mut self,
-        _agent: impl std::borrow::Borrow<Self::Agent>,
+        _agent: &Self::Agent,
     ) -> Option<<Self::Agent as amnesia::agent::Agent>::Observation> {
         match self.walker_position {
             CliffPath(x, 0) if x != 0 => None,
@@ -94,10 +94,10 @@ impl Environment for Cliff {
 
     fn receive_action(
         &mut self,
-        _agent: impl std::borrow::Borrow<Self::Agent>,
-        action: impl std::borrow::Borrow<<Self::Agent as Agent>::Action>,
+        _agent: &Self::Agent,
+        action: &<Self::Agent as Agent>::Action,
     ) -> f64 {
-        let (delta_x, delta_y) = match action.borrow() {
+        let (delta_x, delta_y) = match action {
             Walk::Up => (0isize, 1isize),
             Walk::Down => (0, -1),
             Walk::Left => (-1, 0),
@@ -125,10 +125,7 @@ impl EpisodicEnvironment for Cliff {
         self.walker_position = CliffPath(0, 0)
     }
 
-    fn final_observation(
-        &self,
-        _agent: impl std::borrow::Borrow<Self::Agent>,
-    ) -> <Self::Agent as Agent>::Observation {
+    fn final_observation(&self, _agent: &Self::Agent) -> <Self::Agent as Agent>::Observation {
         self.walker_position
     }
 }

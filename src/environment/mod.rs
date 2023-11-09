@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use crate::agent::Agent;
 
 // Docs imports
@@ -18,13 +16,13 @@ pub trait Environment {
     /// of the [Agent].
     fn get_observation(
         &mut self,
-        agent: impl Borrow<Self::Agent>,
+        agent: &Self::Agent,
     ) -> Option<<Self::Agent as Agent>::Observation>;
 
     fn receive_action(
         &mut self,
-        agent: impl Borrow<Self::Agent>,
-        action: impl Borrow<<Self::Agent as Agent>::Action>,
+        agent: &Self::Agent,
+        action: &<Self::Agent as Agent>::Action,
     ) -> f64;
 }
 
@@ -33,8 +31,5 @@ pub trait EpisodicEnvironment: Environment {
     fn reset_environment(&mut self);
 
     /// Get the [Observation] of the terminal state of the [`EpisodicEnvironment`].
-    fn final_observation(
-        &self,
-        agent: impl Borrow<Self::Agent>,
-    ) -> <Self::Agent as Agent>::Observation;
+    fn final_observation(&self, agent: &Self::Agent) -> <Self::Agent as Agent>::Observation;
 }

@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use amnesia::{
     action::{Action, DiscreteAction},
     agent::Agent,
@@ -81,7 +79,7 @@ impl Environment for Mars {
 
     fn get_observation(
         &mut self,
-        _agent: impl Borrow<Self::Agent>,
+        _agent: &Self::Agent,
     ) -> Option<<Self::Agent as Agent>::Observation> {
         match self.rover_position {
             MarsSpace::S1 => None,
@@ -92,10 +90,10 @@ impl Environment for Mars {
 
     fn receive_action(
         &mut self,
-        _agent: impl Borrow<Self::Agent>,
-        action: impl Borrow<<Self::Agent as Agent>::Action>,
+        _agent: &Self::Agent,
+        action: &<Self::Agent as Agent>::Action,
     ) -> f64 {
-        self.rover_position = match action.borrow() {
+        self.rover_position = match action {
             RoverAction::MoveLeft => match self.rover_position {
                 MarsSpace::S1 => MarsSpace::S1,
                 MarsSpace::S2 => MarsSpace::S1,
@@ -132,10 +130,7 @@ impl EpisodicEnvironment for Mars {
         self.rover_position = MarsSpace::S4;
     }
 
-    fn final_observation(
-        &self,
-        _agent: impl Borrow<Self::Agent>,
-    ) -> <Self::Agent as Agent>::Observation {
+    fn final_observation(&self, _agent: &Self::Agent) -> <Self::Agent as Agent>::Observation {
         self.rover_position
     }
 }

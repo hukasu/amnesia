@@ -45,7 +45,7 @@ impl Environment for Cassino {
 
     fn get_observation(
         &mut self,
-        _agent: impl std::borrow::Borrow<Self::Agent>,
+        _agent: &Self::Agent,
     ) -> Option<<Self::Agent as Agent>::Observation> {
         if !self.0 {
             self.0 = true;
@@ -57,10 +57,10 @@ impl Environment for Cassino {
 
     fn receive_action(
         &mut self,
-        _agent: impl std::borrow::Borrow<Self::Agent>,
-        action: impl std::borrow::Borrow<<Self::Agent as Agent>::Action>,
+        _agent: &Self::Agent,
+        action: &<Self::Agent as Agent>::Action,
     ) -> f64 {
-        let bandit_payout_multiplier = match action.borrow() {
+        let bandit_payout_multiplier = match action {
             MultiArmedBanditAction::Bandit1 => 1.,
             MultiArmedBanditAction::Bandit2 => 2.,
             MultiArmedBanditAction::Bandit3 => 3.,
@@ -75,10 +75,7 @@ impl EpisodicEnvironment for Cassino {
         self.0 = false;
     }
 
-    fn final_observation(
-        &self,
-        _agent: impl std::borrow::Borrow<Self::Agent>,
-    ) -> <Self::Agent as Agent>::Observation {
+    fn final_observation(&self, _agent: &Self::Agent) -> <Self::Agent as Agent>::Observation {
         MultiArmedBanditObservation::Game
     }
 }
