@@ -1,6 +1,7 @@
 use crate::{agent::Agent, environment::Environment, trajectory::Trajectory};
 
 pub mod monte_carlo;
+pub mod q_learning;
 pub mod sarsa;
 
 pub trait PolicyEstimator {
