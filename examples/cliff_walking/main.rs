@@ -10,6 +10,7 @@ use amnesia::{
             ConstantAlphaMonteCarlo, EveryVisitMonteCarlo, FirstVisitMonteCarlo,
             IncrementalMonteCarlo,
         },
+        q_learning::QLearning,
         sarsa::SARSA,
         PolicyEstimator,
     },
@@ -176,6 +177,12 @@ fn main() {
     };
     ConstantAlphaMonteCarlo::<Cliff>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cliff, &mut agent);
+
+    println!("Q-Learning");
+    let mut agent = CliffWalker {
+        policy: EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap(),
+    };
+    QLearning::<Cliff>::new(EPISODES, ALPHA, RETURN_DISCOUNT).policy_search(&mut cliff, &mut agent);
 
     println!("SARSA");
     let mut agent = CliffWalker {
