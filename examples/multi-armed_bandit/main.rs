@@ -9,6 +9,7 @@ use amnesia::{
         monte_carlo::ConstantAlphaMonteCarlo,
         monte_carlo::FirstVisitMonteCarlo,
         monte_carlo::{EveryVisitMonteCarlo, IncrementalMonteCarlo},
+        q_learning::QLearning,
         sarsa::SARSA,
         PolicyEstimator,
     },
@@ -132,6 +133,11 @@ fn main() {
     println!("Constant Alpha Monte Carlo");
     let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     ConstantAlphaMonteCarlo::<Cassino>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
+        .policy_search(&mut cassino, &mut agent);
+
+    println!("Q-Learning");
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
+    QLearning::<Cassino>::new(EPISODES, ALPHA, RETURN_DISCOUNT)
         .policy_search(&mut cassino, &mut agent);
 
     println!("SARSA");
