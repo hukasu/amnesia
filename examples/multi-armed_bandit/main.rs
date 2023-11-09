@@ -9,6 +9,7 @@ use amnesia::{
         monte_carlo::ConstantAlphaMonteCarlo,
         monte_carlo::FirstVisitMonteCarlo,
         monte_carlo::{EveryVisitMonteCarlo, IncrementalMonteCarlo},
+        sarsa::SARSA,
         PolicyEstimator,
     },
     ValueFunction,
@@ -132,4 +133,8 @@ fn main() {
     let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     ConstantAlphaMonteCarlo::<Cassino>::new(ALPHA, RETURN_DISCOUNT, EPISODES)
         .policy_search(&mut cassino, &mut agent);
+
+    println!("SARSA");
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
+    SARSA::<Cassino>::new(EPISODES, ALPHA, RETURN_DISCOUNT).policy_search(&mut cassino, &mut agent);
 }
