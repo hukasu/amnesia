@@ -9,7 +9,7 @@ pub use self::{
     incremental_monte_carlo::IncrementalMonteCarlo,
 };
 
-use std::{borrow::BorrowMut, collections::VecDeque};
+use std::collections::VecDeque;
 
 use crate::{
     action::DiscreteAction, agent::Agent, environment::EpisodicEnvironment,
@@ -108,9 +108,9 @@ trait MonteCarlo<
         environment.reset_environment();
         trajectory.clear();
 
-        while let Some(observation) = environment.get_observation(agent.borrow_mut()) {
-            let action = (agent.borrow_mut()).act(&observation);
-            let reward = environment.receive_action(agent.borrow_mut(), &action);
+        while let Some(observation) = environment.get_observation(agent) {
+            let action = agent.act(&observation);
+            let reward = environment.receive_action(agent, &action);
 
             trajectory.push(Trajectory::Step {
                 observation,
