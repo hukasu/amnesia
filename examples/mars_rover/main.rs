@@ -60,8 +60,8 @@ impl Agent for Rover {
     type Action = RoverAction;
     type Observation = MarsSpace;
 
-    fn act(&self, observation: impl std::borrow::Borrow<Self::Observation>) -> Self::Action {
-        self.0.act(observation.borrow())
+    fn act(&self, observation: &Self::Observation) -> Self::Action {
+        self.0.act(observation)
     }
 
     fn policy_improvemnt(

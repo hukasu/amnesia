@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use crate::ValueFunction;
 
 pub trait Agent
@@ -9,7 +7,7 @@ where
     type Action: crate::action::Action;
     type Observation: crate::observation::Observation;
 
-    fn act(&self, observation: impl Borrow<Self::Observation>) -> Self::Action;
+    fn act(&self, observation: &Self::Observation) -> Self::Action;
 
     fn policy_improvemnt(
         &mut self,

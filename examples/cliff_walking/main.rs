@@ -63,8 +63,8 @@ impl Agent for CliffWalker {
     type Action = Walk;
     type Observation = CliffPath;
 
-    fn act(&self, observation: impl std::borrow::Borrow<Self::Observation>) -> Self::Action {
-        self.policy.act(observation.borrow())
+    fn act(&self, observation: &Self::Observation) -> Self::Action {
+        self.policy.act(observation)
     }
 
     fn policy_improvemnt(
