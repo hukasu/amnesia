@@ -9,6 +9,8 @@ use crate::{
     trajectory::Trajectory,
 };
 
+use super::MonteCarloSearchState;
+
 pub struct IncrementalMonteCarlo<E: EpisodicEnvironment> {
     return_discount: f64,
     episodes: usize,
@@ -55,21 +57,43 @@ impl<
 {
     fn step_update(
         &self,
+        agent: &mut AG,
         step: &Trajectory<S, AC>,
         step_return: &f64,
-        _visited: &mut [bool],
-        visit_count: &mut [usize],
-        _total_returns: &mut [f64],
-        observation_values: &mut [f64],
+        monte_carlo_search_state: MonteCarloSearchState,
     ) -> f64 {
-        let markov_reward_process_index = Self::tabular_index(step);
-        visit_count[markov_reward_process_index] += 1;
+        if let Trajectory::Step {
+            observation,
+            action,
+            reward: _,
+        } = step
+        {
+            let markov_reward_process_index = Self::tabular_index(step);
+            monte_carlo_search_state.visit_count[markov_reward_process_index] += 1;
 
-        let old_observation_value = observation_values[markov_reward_process_index];
-        let alpha = 1. / visit_count[markov_reward_process_index] as f64;
-        observation_values[markov_reward_process_index] = observation_values
-            [markov_reward_process_index]
-            + alpha * (step_return - observation_values[markov_reward_process_index]);
-        (old_observation_value - observation_values[markov_reward_process_index]).powi(2)
+            let old_observation_value =
+                monte_carlo_search_state.observation_values[markov_reward_process_index];
+            let alpha =
+                1. / monte_carlo_search_state.visit_count[markov_reward_process_index] as f64;
+
+            // Update state-action value
+            monte_carlo_search_state.observation_values[markov_reward_process_index] =
+                monte_carlo_search_state.observation_values[markov_reward_process_index]
+                    + alpha
+                        * (step_return
+                            - monte_carlo_search_state.observation_values
+                                [markov_reward_process_index]);
+            // Propagate change to policy
+            agent.policy_improvemnt(
+                action,
+                observation,
+                monte_carlo_search_state.observation_values[markov_reward_process_index],
+            );
+            (old_observation_value
+                - monte_carlo_search_state.observation_values[markov_reward_process_index])
+                .powi(2)
+        } else {
+            panic!("The final step of an Episode should not be included into the Trajectory.");
+        }
     }
 }

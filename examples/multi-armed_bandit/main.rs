@@ -12,7 +12,6 @@ use amnesia::{
         temporal_difference::{ExpectedSARSA, QLearning, SARSA},
         PolicyEstimator,
     },
-    ValueFunction,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -93,9 +92,11 @@ impl Agent for Player {
 
     fn policy_improvemnt(
         &mut self,
-        value_function: &ValueFunction<Self::Observation, Self::Action>,
+        action: &Self::Action,
+        observation: &Self::Observation,
+        value: f64,
     ) {
-        self.0.policy_improvemnt(value_function);
+        self.0.policy_improvemnt(action, observation, value);
     }
 }
 

@@ -39,7 +39,7 @@ trait TemporalDifference<
 
     fn temporal_difference_policy_evaluation(
         &self,
-        agent: &AG,
+        agent: &mut AG,
         action_value: &mut [f64],
         (s, a, r, next_step): (&S, &AC, f64, Option<(&S, &AC)>),
         temporal_difference_configuration: &TemporalDifferenceConfiguration,
@@ -49,11 +49,15 @@ trait TemporalDifference<
             self.algorithm_specific_evaluation(agent, action_value, next_step);
 
         let old_value = action_value[prev_index];
+
+        // Update state-action value
         action_value[prev_index] = action_value[prev_index]
             + temporal_difference_configuration.learning_rate
                 * (r + temporal_difference_configuration.discount_factor
                     * algorithm_specific_evaluation
                     - action_value[prev_index]);
+        // Propagate change to policy
+        agent.policy_improvemnt(a, s, action_value[prev_index]);
 
         (old_value - action_value[prev_index]).powi(2)
     }
@@ -139,11 +143,6 @@ trait TemporalDifference<
                     _ => panic!("A final state shouldn't have been added to the temporal difference sliding window."),
                 }
             }
-
-            agent.policy_improvemnt(&|state: &S, action: &AC| -> f64 {
-                let index = Self::tabular_index(state, action);
-                action_value[index]
-            });
 
             episode_variation_window.pop_front();
             episode_variation_window.push_back(episode_variation);

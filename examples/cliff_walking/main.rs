@@ -13,7 +13,6 @@ use amnesia::{
         temporal_difference::{ExpectedSARSA, QLearning, SARSA},
         PolicyEstimator,
     },
-    ValueFunction,
 };
 
 const LEN: usize = 12;
@@ -70,9 +69,11 @@ impl Agent for CliffWalker {
 
     fn policy_improvemnt(
         &mut self,
-        value_function: &ValueFunction<Self::Observation, Self::Action>,
+        action: &Self::Action,
+        observation: &Self::Observation,
+        value: f64,
     ) {
-        self.policy.policy_improvemnt(value_function)
+        self.policy.policy_improvemnt(action, observation, value);
     }
 }
 

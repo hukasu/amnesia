@@ -14,8 +14,15 @@ use std::collections::VecDeque;
 use crate::{
     action::DiscreteAction, agent::Agent, environment::EpisodicEnvironment,
     observation::DiscreteObservation, reinforcement_learning::PolicyEstimator,
-    trajectory::Trajectory, ValueFunction,
+    trajectory::Trajectory,
 };
+
+struct MonteCarloSearchState<'a> {
+    visited: &'a mut [bool],
+    visit_count: &'a mut [usize],
+    total_returns: &'a mut [f64],
+    observation_values: &'a mut [f64],
+}
 
 trait MonteCarlo<
     AC: DiscreteAction,
@@ -37,12 +44,10 @@ trait MonteCarlo<
     /// Change to value squared
     fn step_update(
         &self,
+        agent: &mut AG,
         step: &Trajectory<S, AC>,
         step_return: &f64,
-        visited: &mut [bool],
-        visit_count: &mut [usize],
-        total_returns: &mut [f64],
-        observation_values: &mut [f64],
+        monte_carlo_search_state: MonteCarloSearchState,
     ) -> f64;
 
     fn monte_carlo_policy_search(
@@ -77,19 +82,19 @@ trait MonteCarlo<
 
             for (step, step_return) in trajectory.iter().zip(episode_returns.iter()) {
                 episode_variation += self.step_update(
+                    agent,
                     step,
                     step_return,
-                    &mut visited,
-                    &mut visit_count,
-                    &mut total_returns,
-                    &mut observation_values,
+                    MonteCarloSearchState {
+                        visited: &mut visited,
+                        visit_count: &mut visit_count,
+                        total_returns: &mut total_returns,
+                        observation_values: &mut observation_values,
+                    },
                 );
             }
             episode_variation_window.pop_front();
             episode_variation_window.push_back(episode_variation);
-
-            let value_function = Self::make_value_fuction(&observation_values);
-            agent.policy_improvemnt(&value_function);
         }
 
         Self::print_observation_action_pairs(
@@ -157,30 +162,5 @@ trait MonteCarlo<
                 panic!("The Trajectory contains a Observation that is not present on the list of possible Observations")
             }
         }
-    }
-
-    fn make_value_fuction(observation_values: &[f64]) -> Box<ValueFunction<S, AC>> {
-        let value_function = |observation: &S, action: &AC| {
-            let observation_pos = S::OBSERVATIONS
-                .iter()
-                .position(|discrete_observation| discrete_observation.eq(observation));
-            let action_pos = AC::ACTIONS
-                .iter()
-                .position(|const_action| const_action.eq(action));
-            match (observation_pos, action_pos) {
-                (Some(observation_index), Some(action_index)) => {
-                    let markov_reward_process_index =
-                        observation_index * AC::ACTIONS.len() + action_index;
-                    observation_values[markov_reward_process_index]
-                }
-                (None, _) => {
-                    panic!("The Trajectory contains a Observation that is not present on the list of possible Observations")
-                }
-                (_, None) => {
-                    panic!("The Trajectory contains an Action that is not present on the list of possible Actions")
-                }
-            }
-        };
-        Box::new(value_function)
     }
 }

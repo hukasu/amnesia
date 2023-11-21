@@ -2,7 +2,7 @@ use std::{error::Error, fmt::Display, marker::PhantomData};
 
 use crate::{
     action::DiscreteAction, observation::DiscreteObservation, policy::Policy,
-    random_number_generator::RandomNumberGeneratorFacade, ValueFunction,
+    random_number_generator::RandomNumberGeneratorFacade,
 };
 
 #[derive(Debug)]
@@ -28,7 +28,7 @@ pub struct EpsilonGreedyPolicy<
 > {
     epsilon: f64,
     rng_facade: RNG,
-    observation_action_mapping: Vec<A>,
+    observation_action_mapping: Vec<(A, f64)>,
     observation_phantom: PhantomData<S>,
 }
 
@@ -39,7 +39,12 @@ impl<A: DiscreteAction, S: DiscreteObservation, RNG: RandomNumberGeneratorFacade
         if (0.0f64..1.0).contains(&epsilon) {
             let random_start = S::OBSERVATIONS
                 .iter()
-                .map(|_| A::ACTIONS[(rng_facade.random() * A::ACTIONS.len() as f64) as usize])
+                .map(|_| {
+                    (
+                        A::ACTIONS[(rng_facade.random() * A::ACTIONS.len() as f64) as usize],
+                        0.,
+                    )
+                })
                 .collect();
             Ok(Self {
                 epsilon,
@@ -67,26 +72,22 @@ impl<A: DiscreteAction, S: DiscreteObservation, RNG: RandomNumberGeneratorFacade
                 .iter()
                 .position(|obs| obs.eq(observation))
                 .expect("All observations must map to an action.");
-            self.observation_action_mapping[obs_index]
+            self.observation_action_mapping[obs_index].0
         }
     }
 
     fn policy_improvemnt(
         &mut self,
-        value_function: &ValueFunction<Self::Observation, Self::Action>,
+        action: &Self::Action,
+        observation: &Self::Observation,
+        value: f64,
     ) {
-        self.observation_action_mapping
-            .iter_mut()
-            .zip(Self::Observation::OBSERVATIONS.iter())
-            .for_each(|(policy_action, observation)| {
-                let max_action = Self::Action::ACTIONS.iter().max_by(|lhs, rhs| {
-                    value_function(observation, lhs).total_cmp(&value_function(observation, rhs))
-                });
-                if let Some(best_action) = max_action {
-                    *policy_action = *best_action;
-                } else {
-                    panic!("Could not determinate best action for Observtion {observation:?}")
-                }
-            });
+        let observation_index = S::OBSERVATIONS
+            .iter()
+            .position(|discrete_obs| discrete_obs.eq(observation))
+            .expect("Observation should exist in Discrete observations.");
+        if self.observation_action_mapping[observation_index].1 < value {
+            self.observation_action_mapping[observation_index] = (*action, value);
+        }
     }
 }

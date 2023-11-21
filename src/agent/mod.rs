@@ -1,4 +1,4 @@
-use crate::{action::DiscreteAction, observation::DiscreteObservation, ValueFunction};
+use crate::{action::DiscreteAction, observation::DiscreteObservation};
 
 pub trait Agent
 where
@@ -11,7 +11,9 @@ where
 
     fn policy_improvemnt(
         &mut self,
-        value_function: &ValueFunction<Self::Observation, Self::Action>,
+        action: &Self::Action,
+        observation: &Self::Observation,
+        value: f64,
     );
 }
 

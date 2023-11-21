@@ -1,7 +1,5 @@
 pub mod epsilon_greedy;
 
-use crate::ValueFunction;
-
 pub trait Policy
 where
     Self: Sized,
@@ -13,6 +11,8 @@ where
 
     fn policy_improvemnt(
         &mut self,
-        value_function: &ValueFunction<Self::Observation, Self::Action>,
+        action: &Self::Action,
+        observation: &Self::Observation,
+        value: f64,
     );
 }
