@@ -89,6 +89,7 @@ impl DiscreteAgent<Walk, CliffPath> for CliffWalker {
 
 struct Cliff {
     walker_position: CliffPath,
+    steps_taken: usize,
 }
 
 impl Environment for Cliff {
@@ -100,7 +101,7 @@ impl Environment for Cliff {
     ) -> Option<<Self::Agent as amnesia::agent::Agent>::Observation> {
         match self.walker_position {
             CliffPath(x, 0) if x != 0 => None,
-            _ => Some(self.walker_position),
+            _ => Some(self.walker_position).filter(|_| self.steps_taken < 500),
         }
     }
 
@@ -109,32 +110,38 @@ impl Environment for Cliff {
         _agent: &Self::Agent,
         action: &<Self::Agent as Agent>::Action,
     ) -> f64 {
-        let (delta_x, delta_y) = match action {
-            Walk::Up => (0isize, 1isize),
-            Walk::Down => (0, -1),
-            Walk::Left => (-1, 0),
-            Walk::Right => (1, 0),
-        };
-        let old_pos = self.walker_position;
-        self.walker_position = {
-            let CliffPath(x, y) = self.walker_position;
-            CliffPath(
-                x.saturating_add_signed(delta_x).min(LEN - 1),
-                y.saturating_add_signed(delta_y).min(4 - 1),
-            )
-        };
-        match self.walker_position {
-            cliff if cliff.eq(&old_pos) => -5.,
-            CliffPath(x, 0) if x == LEN - 1 => 10.,
-            CliffPath(x, 0) if x != 0 => -100.,
-            _ => -1.,
+        self.steps_taken += 1;
+
+        if self.steps_taken < 500 {
+            let (delta_x, delta_y) = match action {
+                Walk::Up => (0isize, 1isize),
+                Walk::Down => (0, -1),
+                Walk::Left => (-1, 0),
+                Walk::Right => (1, 0),
+            };
+
+            self.walker_position = {
+                let CliffPath(x, y) = self.walker_position;
+                CliffPath(
+                    x.saturating_add_signed(delta_x).min(LEN - 1),
+                    y.saturating_add_signed(delta_y).min(4 - 1),
+                )
+            };
+            match self.walker_position {
+                CliffPath(x, 0) if x == LEN - 1 => 10.,
+                CliffPath(x, 0) if x != 0 => -100.,
+                _ => -1.,
+            }
+        } else {
+            -100.
         }
     }
 }
 
 impl EpisodicEnvironment for Cliff {
     fn reset_environment(&mut self) {
-        self.walker_position = CliffPath(0, 0)
+        self.walker_position = CliffPath(0, 0);
+        self.steps_taken = 0;
     }
 
     fn final_observation(&self, _agent: &Self::Agent) -> <Self::Agent as Agent>::Observation {
@@ -158,6 +165,7 @@ fn main() {
 
     let mut cliff = Cliff {
         walker_position: CliffPath(0, 0),
+        steps_taken: 0,
     };
 
     println!("First Visit Monte Carlo");
