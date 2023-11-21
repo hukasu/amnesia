@@ -31,19 +31,21 @@ trait TemporalDifference<
 {
     fn algorithm_specific_evaluation(
         &self,
+        agent: &AG,
         action_value: &mut [f64],
         next_step: Option<(&S, &AC)>,
     ) -> f64;
 
     fn temporal_difference_policy_evaluation(
         &self,
+        agent: &AG,
         action_value: &mut [f64],
         (s, a, r, next_step): (&S, &AC, f64, Option<(&S, &AC)>),
         temporal_difference_configuration: &TemporalDifferenceConfiguration,
     ) -> f64 {
         let prev_index = Self::tabular_index(s, a);
         let algorithm_specific_evaluation =
-            self.algorithm_specific_evaluation(action_value, next_step);
+            self.algorithm_specific_evaluation(agent, action_value, next_step);
 
         let old_value = action_value[prev_index];
         action_value[prev_index] = action_value[prev_index]
@@ -93,6 +95,7 @@ trait TemporalDifference<
                             reward: past_reward,
                         } => {
                             episode_variation += self.temporal_difference_policy_evaluation(
+                                agent,
                                 &mut action_value,
                                 (
                                     &past_obs,
@@ -121,11 +124,14 @@ trait TemporalDifference<
                         reward,
                     } => {
                         episode_variation += self.temporal_difference_policy_evaluation(
+                            agent,
                             &mut action_value,
-                            (&observation,
-                            &action,
-                            reward,
-                            None),
+                            (
+                                &observation,
+                                &action,
+                                reward,
+                                None
+                            ),
                             temporal_difference_configuration
                         );
                     }

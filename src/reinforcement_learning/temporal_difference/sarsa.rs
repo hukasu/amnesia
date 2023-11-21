@@ -71,6 +71,7 @@ impl<
 {
     fn algorithm_specific_evaluation(
         &self,
+        _agent: &AG,
         action_value: &mut [f64],
         next_step: Option<(&S, &AC)>,
     ) -> f64 {
