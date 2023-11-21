@@ -85,12 +85,14 @@ impl<
                             - monte_carlo_search_state.observation_values
                                 [markov_reward_process_index]);
             // Propagate change to policy
-
-            agent.policy_improvemnt(
-                action,
-                observation,
-                monte_carlo_search_state.observation_values[markov_reward_process_index],
-            );
+            AC::ACTIONS.iter().for_each(|discrete_action| {
+                let tabular_index = Self::tabular_index(discrete_action, observation);
+                agent.policy_improvemnt(
+                    discrete_action,
+                    observation,
+                    monte_carlo_search_state.observation_values[tabular_index],
+                );
+            });
 
             (old_observation_value
                 - monte_carlo_search_state.observation_values[markov_reward_process_index])

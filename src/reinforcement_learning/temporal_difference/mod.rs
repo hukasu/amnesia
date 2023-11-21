@@ -59,7 +59,10 @@ trait TemporalDifference<
                     * algorithm_specific_evaluation
                     - action_value[prev_index]);
         // Propagate change to policy
-        agent.policy_improvemnt(a, s, action_value[prev_index]);
+        AC::ACTIONS.iter().for_each(|action| {
+            let tabular_index = s.index() * AC::ACTIONS.len() + action.index();
+            agent.policy_improvemnt(action, s, action_value[tabular_index]);
+        });
 
         (old_value - action_value[prev_index]).powi(2)
     }
