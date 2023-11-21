@@ -134,9 +134,7 @@ trait MonteCarlo<
         }
     }
 
-    fn markov_reward_process_observation_action_pair_index(
-        trajectory: &Trajectory<S, AC>,
-    ) -> usize {
+    fn tabular_index(trajectory: &Trajectory<S, AC>) -> usize {
         let (observation_pos, action_pos) = match trajectory {
             Trajectory::Step {
                 observation,

@@ -62,8 +62,7 @@ impl<
         total_returns: &mut [f64],
         observation_values: &mut [f64],
     ) -> f64 {
-        let markov_reward_process_index =
-            Self::markov_reward_process_observation_action_pair_index(step);
+        let markov_reward_process_index = Self::tabular_index(step);
         let old_observation_value = observation_values[markov_reward_process_index];
         if !visited[markov_reward_process_index] {
             visited[markov_reward_process_index] = true;
