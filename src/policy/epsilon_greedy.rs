@@ -79,7 +79,12 @@ impl<A: DiscreteAction, S: DiscreteObservation, RNG: RandomNumberGeneratorFacade
         value: f64,
     ) {
         let observation_index = observation.index();
-        if self.observation_action_mapping[observation_index].1 < value {
+        if self.observation_action_mapping[observation_index]
+            .0
+            .eq(action)
+        {
+            self.observation_action_mapping[observation_index].1 = value;
+        } else if self.observation_action_mapping[observation_index].1 < value {
             self.observation_action_mapping[observation_index] = (*action, value);
         }
     }
