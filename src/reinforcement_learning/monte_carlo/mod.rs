@@ -138,17 +138,4 @@ trait MonteCarlo<
             println!();
         }
     }
-
-    fn tabular_index(trajectory: &Trajectory<S, AC>) -> usize {
-        match trajectory {
-            Trajectory::Step {
-                observation,
-                action,
-                reward: _,
-            } => {
-                observation.index() * AC::ACTIONS.len() + action.index()
-            }
-            Trajectory::Final { observation: _ } => panic!("Can't turn the final step of a Trajectory into an index for a Markov Reward Process.")
-        }
-    }
 }

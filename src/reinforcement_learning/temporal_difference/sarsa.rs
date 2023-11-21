@@ -7,7 +7,7 @@ use crate::{
     observation::DiscreteObservation,
     reinforcement_learning::{
         temporal_difference::{TemporalDifference, TemporalDifferenceConfiguration},
-        PolicyEstimator,
+        DiscretePolicyEstimator, PolicyEstimator,
     },
 };
 
@@ -77,7 +77,7 @@ impl<
     ) -> f64 {
         match next_step {
             Some((next_state, next_action)) => {
-                let cur_index = Self::tabular_index(next_state, next_action);
+                let cur_index = Self::tabular_index(next_action, next_state);
                 action_value[cur_index]
             }
             None => 0.,

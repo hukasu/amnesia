@@ -1,4 +1,7 @@
-use crate::{agent::Agent, environment::Environment, trajectory::Trajectory};
+use crate::{
+    action::DiscreteAction, agent::Agent, environment::Environment,
+    observation::DiscreteObservation, trajectory::Trajectory,
+};
 
 pub mod monte_carlo;
 pub mod temporal_difference;
@@ -50,4 +53,26 @@ pub trait PolicyEstimator {
                 *out_return = epi_return;
             });
     }
+}
+
+trait DiscretePolicyEstimator<
+    AC: DiscreteAction,
+    S: DiscreteObservation,
+    AG: Agent<Action = AC, Observation = S>,
+    E: Environment<Agent = AG>,
+>: PolicyEstimator<Environment = E>
+{
+    fn tabular_index(action: &AC, observation: &S) -> usize {
+        observation.index() * AC::ACTIONS.len() + action.index()
+    }
+}
+
+impl<
+        AC: DiscreteAction,
+        S: DiscreteObservation,
+        AG: Agent<Action = AC, Observation = S>,
+        E: Environment<Agent = AG>,
+        PE: ?Sized + PolicyEstimator<Environment = E>,
+    > DiscretePolicyEstimator<AC, S, AG, E> for PE
+{
 }

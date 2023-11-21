@@ -7,7 +7,7 @@ use crate::{
     observation::DiscreteObservation,
     reinforcement_learning::{
         temporal_difference::{TemporalDifference, TemporalDifferenceConfiguration},
-        PolicyEstimator,
+        DiscretePolicyEstimator, PolicyEstimator,
     },
 };
 
@@ -79,7 +79,7 @@ impl<
             Some((next_state, _next_action)) => AC::ACTIONS
                 .iter()
                 .map(|discrete_action| {
-                    let index = Self::tabular_index(next_state, discrete_action);
+                    let index = Self::tabular_index(discrete_action, next_state);
                     action_value[index]
                 })
                 .max_by(|lhs, rhs| lhs.total_cmp(rhs))

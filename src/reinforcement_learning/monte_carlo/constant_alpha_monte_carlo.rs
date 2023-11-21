@@ -1,14 +1,16 @@
 use std::marker::PhantomData;
 
-use crate::trajectory::Trajectory;
 use crate::{
-    action::DiscreteAction, agent::Agent, environment::EpisodicEnvironment,
+    action::DiscreteAction,
+    agent::Agent,
+    environment::EpisodicEnvironment,
     observation::DiscreteObservation,
+    reinforcement_learning::{
+        monte_carlo::{MonteCarlo, MonteCarloSearchState},
+        DiscretePolicyEstimator, PolicyEstimator,
+    },
+    trajectory::Trajectory,
 };
-
-use crate::reinforcement_learning::PolicyEstimator;
-
-use super::{MonteCarlo, MonteCarloSearchState};
 
 pub struct ConstantAlphaMonteCarlo<E: EpisodicEnvironment> {
     alpha: f64,
@@ -69,7 +71,7 @@ impl<
             reward: _,
         } = step
         {
-            let markov_reward_process_index = Self::tabular_index(step);
+            let markov_reward_process_index = Self::tabular_index(action, observation);
             monte_carlo_search_state.visit_count[markov_reward_process_index] += 1;
 
             let old_observation_value =
@@ -83,6 +85,7 @@ impl<
                             - monte_carlo_search_state.observation_values
                                 [markov_reward_process_index]);
             // Propagate change to policy
+
             agent.policy_improvemnt(
                 action,
                 observation,

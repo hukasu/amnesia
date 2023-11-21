@@ -16,6 +16,8 @@ use crate::{
     trajectory::Trajectory,
 };
 
+use super::DiscretePolicyEstimator;
+
 struct TemporalDifferenceConfiguration {
     pub episode_limit: usize,
     pub temporal_difference_step: usize,
@@ -44,7 +46,7 @@ trait TemporalDifference<
         (s, a, r, next_step): (&S, &AC, f64, Option<(&S, &AC)>),
         temporal_difference_configuration: &TemporalDifferenceConfiguration,
     ) -> f64 {
-        let prev_index = Self::tabular_index(s, a);
+        let prev_index = Self::tabular_index(a, s);
         let algorithm_specific_evaluation =
             self.algorithm_specific_evaluation(agent, action_value, next_step);
 
@@ -150,13 +152,6 @@ trait TemporalDifference<
 
         Self::print_observation_action_pairs("Action Value Function", &action_value);
         println!("Iterated for {} episodes.", episode);
-    }
-
-    fn tabular_index(
-        state: &<E::Agent as Agent>::Observation,
-        action: &<E::Agent as Agent>::Action,
-    ) -> usize {
-        state.index() * <AC>::ACTIONS.len() + action.index()
     }
 
     fn print_observation_action_pairs(header: &str, list: &[f64]) {

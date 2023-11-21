@@ -7,7 +7,7 @@ use crate::{
     observation::DiscreteObservation,
     reinforcement_learning::{
         temporal_difference::{TemporalDifference, TemporalDifferenceConfiguration},
-        PolicyEstimator,
+        DiscretePolicyEstimator, PolicyEstimator,
     },
 };
 
@@ -79,7 +79,7 @@ impl<
             Some((next_state, _next_action)) => AC::ACTIONS
                 .iter()
                 .map(|action| {
-                    let cur_index = Self::tabular_index(next_state, action);
+                    let cur_index = Self::tabular_index(action, next_state);
                     agent.action_probability(action, next_state) * action_value[cur_index]
                 })
                 .sum(),

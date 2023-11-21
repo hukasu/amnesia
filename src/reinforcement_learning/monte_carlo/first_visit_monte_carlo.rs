@@ -5,11 +5,12 @@ use crate::{
     agent::Agent,
     environment::EpisodicEnvironment,
     observation::DiscreteObservation,
-    reinforcement_learning::{monte_carlo::MonteCarlo, PolicyEstimator},
+    reinforcement_learning::{
+        monte_carlo::{MonteCarlo, MonteCarloSearchState},
+        DiscretePolicyEstimator, PolicyEstimator,
+    },
     trajectory::Trajectory,
 };
-
-use super::MonteCarloSearchState;
 
 pub struct FirstVisitMonteCarlo<E: EpisodicEnvironment> {
     return_discount: f64,
@@ -68,7 +69,7 @@ impl<
             reward: _,
         } = step
         {
-            let markov_reward_process_index = Self::tabular_index(step);
+            let markov_reward_process_index = Self::tabular_index(action, observation);
             let old_observation_value =
                 monte_carlo_search_state.observation_values[markov_reward_process_index];
             if !monte_carlo_search_state.visited[markov_reward_process_index] {
