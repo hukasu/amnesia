@@ -140,27 +140,15 @@ trait MonteCarlo<
     }
 
     fn tabular_index(trajectory: &Trajectory<S, AC>) -> usize {
-        let (observation_pos, action_pos) = match trajectory {
+        match trajectory {
             Trajectory::Step {
                 observation,
                 action,
                 reward: _,
             } => {
-                let observation_pos = S::OBSERVATIONS
-                    .iter()
-                    .position(|discrete_observation| discrete_observation.eq(observation));
-                let action_pos = action.index();
-                (observation_pos, action_pos)
+                observation.index() * AC::ACTIONS.len() + action.index()
             }
             Trajectory::Final { observation: _ } => panic!("Can't turn the final step of a Trajectory into an index for a Markov Reward Process.")
-        };
-        match (observation_pos, action_pos) {
-            (Some(observation_index), action_index) => {
-                observation_index * AC::ACTIONS.len() + action_index
-            }
-            (None, _) => {
-                panic!("The Trajectory contains a Observation that is not present on the list of possible Observations")
-            }
         }
     }
 }

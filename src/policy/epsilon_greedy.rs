@@ -68,11 +68,7 @@ impl<A: DiscreteAction, S: DiscreteObservation, RNG: RandomNumberGeneratorFacade
         if self.rng_facade.random().lt(&self.epsilon) {
             A::ACTIONS[(self.rng_facade.random() * A::ACTIONS.len() as f64) as usize]
         } else {
-            let obs_index = S::OBSERVATIONS
-                .iter()
-                .position(|obs| obs.eq(observation))
-                .expect("All observations must map to an action.");
-            self.observation_action_mapping[obs_index].0
+            self.observation_action_mapping[observation.index()].0
         }
     }
 
@@ -82,10 +78,7 @@ impl<A: DiscreteAction, S: DiscreteObservation, RNG: RandomNumberGeneratorFacade
         observation: &Self::Observation,
         value: f64,
     ) {
-        let observation_index = S::OBSERVATIONS
-            .iter()
-            .position(|discrete_obs| discrete_obs.eq(observation))
-            .expect("Observation should exist in Discrete observations.");
+        let observation_index = observation.index();
         if self.observation_action_mapping[observation_index].1 < value {
             self.observation_action_mapping[observation_index] = (*action, value);
         }

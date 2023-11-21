@@ -156,12 +156,7 @@ trait TemporalDifference<
         state: &<E::Agent as Agent>::Observation,
         action: &<E::Agent as Agent>::Action,
     ) -> usize {
-        <S>::OBSERVATIONS
-            .iter()
-            .position(|discrete_observation| discrete_observation.eq(state))
-            .expect("State is not present on the list ofObservations.")
-            * <AC>::ACTIONS.len()
-            + action.index()
+        state.index() * <AC>::ACTIONS.len() + action.index()
     }
 
     fn print_observation_action_pairs(header: &str, list: &[f64]) {

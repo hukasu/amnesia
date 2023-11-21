@@ -20,6 +20,13 @@ where
     Self: 'static + Sized + Debug + Copy + PartialEq + Eq + Hash,
 {
     const OBSERVATIONS: &'static [Self];
+
+    fn index(&self) -> usize {
+        Self::OBSERVATIONS
+            .iter()
+            .position(|observation| observation.eq(self))
+            .expect("Observation must exist in Discrete observations.")
+    }
 }
 
 /// An [Observation] of the [Environment] that take continuous values.
