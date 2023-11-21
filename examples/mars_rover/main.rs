@@ -1,6 +1,6 @@
 use amnesia::{
     action::{Action, DiscreteAction},
-    agent::Agent,
+    agent::{Agent, DiscreteAgent},
     environment::{Environment, EpisodicEnvironment},
     observation::{DiscreteObservation, Observation},
     policy::{epsilon_greedy::EpsilonGreedyPolicy, Policy},
@@ -10,7 +10,7 @@ use amnesia::{
             ConstantAlphaMonteCarlo, EveryVisitMonteCarlo, FirstVisitMonteCarlo,
             IncrementalMonteCarlo,
         },
-        temporal_difference::{QLearning, SARSA},
+        temporal_difference::{ExpectedSARSA, QLearning, SARSA},
         PolicyEstimator,
     },
     ValueFunction,
@@ -68,6 +68,16 @@ impl Agent for Rover {
         value_function: &ValueFunction<Self::Observation, Self::Action>,
     ) {
         self.0.policy_improvemnt(value_function);
+    }
+}
+
+impl DiscreteAgent<RoverAction, MarsSpace> for Rover {
+    fn action_probability(&self, action: &RoverAction, observation: &MarsSpace) -> f64 {
+        if self.act(observation).eq(action) {
+            1.
+        } else {
+            0.
+        }
     }
 }
 
@@ -181,4 +191,9 @@ fn main() {
     println!("SARSA");
     let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     SARSA::<Mars>::new(EPISODES, ALPHA, RETURN_DISCOUNT).policy_search(&mut mars, &mut agent);
+
+    println!("ExpectedSARSA");
+    let mut agent = Rover(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
+    ExpectedSARSA::<Mars>::new(EPISODES, ALPHA, RETURN_DISCOUNT)
+        .policy_search(&mut mars, &mut agent);
 }

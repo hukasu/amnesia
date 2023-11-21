@@ -1,6 +1,6 @@
 use amnesia::{
     action::{Action, DiscreteAction},
-    agent::Agent,
+    agent::{Agent, DiscreteAgent},
     environment::{Environment, EpisodicEnvironment},
     observation::{DiscreteObservation, Observation},
     policy::{epsilon_greedy::EpsilonGreedyPolicy, Policy},
@@ -9,7 +9,7 @@ use amnesia::{
         monte_carlo::ConstantAlphaMonteCarlo,
         monte_carlo::FirstVisitMonteCarlo,
         monte_carlo::{EveryVisitMonteCarlo, IncrementalMonteCarlo},
-        temporal_difference::{QLearning, SARSA},
+        temporal_difference::{ExpectedSARSA, QLearning, SARSA},
         PolicyEstimator,
     },
     ValueFunction,
@@ -82,6 +82,7 @@ impl EpisodicEnvironment for Cassino {
 }
 
 struct Player(EpsilonGreedyPolicy<MultiArmedBanditAction, MultiArmedBanditObservation, RandFacade>);
+
 impl Agent for Player {
     type Action = MultiArmedBanditAction;
     type Observation = MultiArmedBanditObservation;
@@ -95,6 +96,20 @@ impl Agent for Player {
         value_function: &ValueFunction<Self::Observation, Self::Action>,
     ) {
         self.0.policy_improvemnt(value_function);
+    }
+}
+
+impl DiscreteAgent<MultiArmedBanditAction, MultiArmedBanditObservation> for Player {
+    fn action_probability(
+        &self,
+        action: &MultiArmedBanditAction,
+        observation: &MultiArmedBanditObservation,
+    ) -> f64 {
+        if self.act(observation).eq(action) {
+            1.
+        } else {
+            0.
+        }
     }
 }
 
@@ -142,4 +157,9 @@ fn main() {
     println!("SARSA");
     let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
     SARSA::<Cassino>::new(EPISODES, ALPHA, RETURN_DISCOUNT).policy_search(&mut cassino, &mut agent);
+
+    println!("ExpectedSARSA");
+    let mut agent = Player(EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap());
+    ExpectedSARSA::<Cassino>::new(EPISODES, ALPHA, RETURN_DISCOUNT)
+        .policy_search(&mut cassino, &mut agent);
 }

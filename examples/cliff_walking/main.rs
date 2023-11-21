@@ -1,6 +1,6 @@
 use amnesia::{
     action::{Action, DiscreteAction},
-    agent::Agent,
+    agent::{Agent, DiscreteAgent},
     environment::{Environment, EpisodicEnvironment},
     observation::{DiscreteObservation, Observation},
     policy::{epsilon_greedy::EpsilonGreedyPolicy, Policy},
@@ -10,7 +10,7 @@ use amnesia::{
             ConstantAlphaMonteCarlo, EveryVisitMonteCarlo, FirstVisitMonteCarlo,
             IncrementalMonteCarlo,
         },
-        temporal_difference::{QLearning, SARSA},
+        temporal_difference::{ExpectedSARSA, QLearning, SARSA},
         PolicyEstimator,
     },
     ValueFunction,
@@ -73,6 +73,16 @@ impl Agent for CliffWalker {
         value_function: &ValueFunction<Self::Observation, Self::Action>,
     ) {
         self.policy.policy_improvemnt(value_function)
+    }
+}
+
+impl DiscreteAgent<Walk, CliffPath> for CliffWalker {
+    fn action_probability(&self, action: &Walk, observation: &CliffPath) -> f64 {
+        if self.act(observation).eq(action) {
+            1.
+        } else {
+            0.
+        }
     }
 }
 
@@ -188,4 +198,11 @@ fn main() {
         policy: EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap(),
     };
     SARSA::<Cliff>::new(EPISODES, ALPHA, RETURN_DISCOUNT).policy_search(&mut cliff, &mut agent);
+
+    println!("ExpectedSARSA");
+    let mut agent = CliffWalker {
+        policy: EpsilonGreedyPolicy::new(EPSILON, RandFacade).unwrap(),
+    };
+    ExpectedSARSA::<Cliff>::new(EPISODES, ALPHA, RETURN_DISCOUNT)
+        .policy_search(&mut cliff, &mut agent);
 }

@@ -1,4 +1,4 @@
-use crate::ValueFunction;
+use crate::{action::DiscreteAction, observation::DiscreteObservation, ValueFunction};
 
 pub trait Agent
 where
@@ -13,4 +13,10 @@ where
         &mut self,
         value_function: &ValueFunction<Self::Observation, Self::Action>,
     );
+}
+
+pub trait DiscreteAgent<AC: DiscreteAction, S: DiscreteObservation>:
+    Agent<Action = AC, Observation = S>
+{
+    fn action_probability(&self, action: &AC, observation: &S) -> f64;
 }

@@ -1,8 +1,9 @@
+mod expected_sarsa;
 mod q_learning;
 mod sarsa;
 
 // Re-exports
-pub use self::{q_learning::QLearning, sarsa::SARSA};
+pub use self::{expected_sarsa::ExpectedSARSA, q_learning::QLearning, sarsa::SARSA};
 
 use std::collections::VecDeque;
 
