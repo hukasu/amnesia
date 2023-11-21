@@ -162,10 +162,7 @@ trait TemporalDifference<
             .position(|discrete_observation| discrete_observation.eq(state))
             .expect("State is not present on the list ofObservations.")
             * <AC>::ACTIONS.len()
-            + <<E::Agent as Agent>::Action as DiscreteAction>::ACTIONS
-                .iter()
-                .position(|discrete_action| discrete_action.eq(action))
-                .expect("Action is not present on the list of Actions.")
+            + action.index()
     }
 
     fn print_observation_action_pairs(header: &str, list: &[f64]) {

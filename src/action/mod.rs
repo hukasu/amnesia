@@ -13,6 +13,13 @@ where
     Self: 'static + Sized + Debug + Copy + PartialEq + Eq + Hash,
 {
     const ACTIONS: &'static [Self];
+
+    fn index(&self) -> usize {
+        Self::ACTIONS
+            .iter()
+            .position(|action| action.eq(self))
+            .expect("Action must exist in Discrete actions.")
+    }
 }
 
 /// Trait that defines [Action]s with continuous values.
